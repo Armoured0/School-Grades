@@ -32,8 +32,47 @@ def saveStudentData(student):
         print("Save failed.")
         pass
 
+mainRunning = True
+print("Welcome to student data!")
 
+while mainRunning:
+    startUp = True
+    while startUp:
+        try:
+            print("Please select an option:\n"
+                "1. Create new student.\n"
+                "2. Edit student data.\n"
+                "3. Access student data.")
+            usrInput = int(input("Choose your option: "))
+            if usrInput >= 1 and usrInput <= 3:
+                startUp = False
+                pass
+            else:
+                print("Invalid option!")
+                pass
 
+        except ValueError:
+            print("Invalid option!")
+            pass
 
-student = createStudent()
-saveStudentData(student)
+    if usrInput == 1:
+        choosingSave = True
+        student = createStudent()
+        while choosingSave:
+            usrInput = input("Would you like to save this student? Y or N: ")
+            if usrInput.upper() == "Y":
+                choosingSave = False
+                saveStudentData(student)
+                pass
+            elif usrInput.upper() == "N":
+                choosingSave = False
+                pass
+            else:
+                print("Invalid option!")
+                pass
+        
+    elif usrInput == 2:
+        pass
+    elif usrInput == 3:
+        pass
+    
