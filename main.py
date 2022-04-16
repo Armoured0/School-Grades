@@ -72,7 +72,63 @@ while mainRunning:
                 pass
         
     elif usrInput == 2:
-        pass
+        editing = True
+        try:
+            print("Enter the ID of the student you would like to edit.")
+            id = input("Enter here:")
+            with open(f'{id}', 'rb') as r:
+                student = pickle.load(r)
+            while editing:
+                continueEdit = True
+                print("What do you want to edit?\n"
+                      "1. Name\n"
+                      "2. Age")
+                usrInput = int(input("Enter here:"))
+                if usrInput == 1:
+                    print(f"Student's name is currently {student.fullName()}")
+                    student.firstName = input("What is the students first name?")
+                    student.lastName = input("What is the students last name?")
+                    with open(f'{id}', 'wb') as f:
+                        pickle.dump(student, f)
+                        print(f"Changes have been saved at {id}")
+                    
+                elif usrInput == 2:
+                    print(f"Student's age is currently {student.age}")
+                    student.age = input("What is the students age?")
+                    with open(f'{id}', 'wb') as f:
+                        pickle.dump(student, f)
+                        print(f"Changes have been saved at {id}")
+                else:
+                    print("Invalid option!")
+                    
+                while continueEdit:
+                    print("Would you like to continue editing?")
+                    usrInput = input("Y or N:")
+                    if usrInput == "Y":
+                        continueEdit = False
+                        pass
+                    elif usrInput == "N":
+                        continueEdit = False
+                        editing = False
+                        pass
+                    else:
+                        print("Invalid option!")
+                        pass
+                        
+                
+        except FileNotFoundError:
+            print("Invalid student ID!")
+        except ValueError:
+            print("Invalid option!")
+        
     elif usrInput == 3:
-        pass
-    
+        print("Enter the ID of the data you would like to access.")
+        id = input("Enter here:")
+        try:
+            with open(f'{id}', 'rb') as r:
+                student = pickle.load(r)
+                print("Data loaded!")
+                print(f"Student full name: {student.fullName()}\n"
+                      f"Student age: {student.age}")
+        except FileNotFoundError:
+            print("Invalid student ID!")
