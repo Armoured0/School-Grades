@@ -1,4 +1,5 @@
 import pickle
+import os
 
 from classfile import Student
 
@@ -21,7 +22,7 @@ def saveStudentData(student):
         with open(f'{id}', 'wb') as f:
             pickle.dump(student, f)
 
-        with open(f'{id}', 'rb') as r:
+        with open(f'Student_Data\\{id}', 'rb') as r:
             student = pickle.load(r)
             print(f"{student.fullName()} has been saved at {id}")
 
