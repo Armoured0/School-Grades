@@ -19,7 +19,7 @@ def saveStudentData(student):
     try:
         with open('idCount.txt', 'r') as idCount:
             id = idCount.read()
-        with open(f'{id}', 'wb') as f:
+        with open(f'Student_Data\\{id}', 'wb') as f:
             pickle.dump(student, f)
 
         with open(f'Student_Data\\{id}', 'rb') as r:
@@ -77,7 +77,7 @@ while mainRunning:
         try:
             print("Enter the ID of the student you would like to edit.")
             id = input("Enter here:")
-            with open(f'{id}', 'rb') as r:
+            with open(f'Student_Data\\{id}', 'rb') as r:
                 student = pickle.load(r)
             while editing:
                 continueEdit = True
@@ -89,14 +89,14 @@ while mainRunning:
                     print(f"Student's name is currently {student.fullName()}")
                     student.firstName = input("What is the students first name?")
                     student.lastName = input("What is the students last name?")
-                    with open(f'{id}', 'wb') as f:
+                    with open(f'Student_Data\\{id}', 'wb') as f:
                         pickle.dump(student, f)
                         print(f"Changes have been saved at {id}")
                     
                 elif usrInput == 2:
                     print(f"Student's age is currently {student.age}")
                     student.age = input("What is the students age?")
-                    with open(f'{id}', 'wb') as f:
+                    with open(f'Student_Data\\{id}', 'wb') as f:
                         pickle.dump(student, f)
                         print(f"Changes have been saved at {id}")
                 else:
@@ -126,10 +126,11 @@ while mainRunning:
         print("Enter the ID of the data you would like to access.")
         id = input("Enter here:")
         try:
-            with open(f'{id}', 'rb') as r:
+            with open(f'Student_Data\\{id}', 'rb') as r:
                 student = pickle.load(r)
                 print("Data loaded!")
                 print(f"Student full name: {student.fullName()}\n"
                       f"Student age: {student.age}")
         except FileNotFoundError:
             print("Invalid student ID!")
+    
