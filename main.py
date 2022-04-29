@@ -45,7 +45,7 @@ while mainRunning:
                 "2. Edit student data.\n"
                 "3. Access student data.")
             usrInput = int(input("Choose your option: "))
-            if usrInput >= 1 and usrInput <= 3:
+            if usrInput >= 1 and usrInput <= 4:
                 startUp = False
                 pass
             else:
@@ -75,6 +75,12 @@ while mainRunning:
     elif usrInput == 2:
         editing = True
         try:
+            
+            print("Avaliable students:")
+            for file in os.listdir('Student_Data'):
+                with open(f'Student_Data\\{file}', 'rb') as r:
+                    student = pickle.load(r)
+                    print(f"ID:{file}. Full name: {student.fullName()}")
             print("Enter the ID of the student you would like to edit.")
             id = input("Enter here:")
             with open(f'Student_Data\\{id}', 'rb') as r:
@@ -123,6 +129,11 @@ while mainRunning:
             print("Invalid option!")
         
     elif usrInput == 3:
+        print("Avaliable students:")
+        for file in os.listdir('Student_Data'):
+            with open(f'Student_Data\\{file}', 'rb') as r:
+                student = pickle.load(r)
+                print(f"ID:{file}. Full name: {student.fullName()}")
         print("Enter the ID of the data you would like to access.")
         id = input("Enter here:")
         try:
@@ -133,4 +144,4 @@ while mainRunning:
                       f"Student age: {student.age}")
         except FileNotFoundError:
             print("Invalid student ID!")
-    
+            
