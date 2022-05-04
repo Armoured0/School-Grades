@@ -4,12 +4,12 @@ import os
 from classfile import Student
 
 
-def createStudent():
+def createStudentObject():
     firstName = input("What is the student's first name?")
     lastName = input("What is the student's last name?")
     studentAge = input("How old is the student?")
 
-    student = Student(firstName, lastName, studentAge)
+    student = Student(firstName, lastName, studentAge, None)
 
     print(f"This student is called {student.fullName()}.\n"
           f"They are {student.age} years old.")
@@ -33,49 +33,25 @@ def saveStudentData(student):
         print("Save failed.")
         pass
 
-mainRunning = True
-print("Welcome to student data!")
-
-while mainRunning:
-    startUp = True
-    while startUp:
-        try:
-            print("Please select an option:\n"
-                "1. Create new student.\n"
-                "2. Edit student data.\n"
-                "3. Access student data.")
-            usrInput = int(input("Choose your option: "))
-            if usrInput >= 1 and usrInput <= 4:
-                startUp = False
-                pass
-            else:
-                print("Invalid option!")
-                pass
-
-        except ValueError:
+def createStudent():
+    choosingSave = True
+    student = createStudentObject()
+    while choosingSave:
+        usrInput = input("Would you like to save this student? Y or N: ")
+        if usrInput.upper() == "Y":
+            choosingSave = False
+            saveStudentData(student)
+            pass
+        elif usrInput.upper() == "N":
+            choosingSave = False
+            pass
+        else:
             print("Invalid option!")
             pass
 
-    if usrInput == 1:
-        choosingSave = True
-        student = createStudent()
-        while choosingSave:
-            usrInput = input("Would you like to save this student? Y or N: ")
-            if usrInput.upper() == "Y":
-                choosingSave = False
-                saveStudentData(student)
-                pass
-            elif usrInput.upper() == "N":
-                choosingSave = False
-                pass
-            else:
-                print("Invalid option!")
-                pass
-        
-    elif usrInput == 2:
+def editStudentData():
         editing = True
         try:
-            
             print("Avaliable students:")
             for file in os.listdir('Student_Data'):
                 with open(f'Student_Data\\{file}', 'rb') as r:
@@ -122,26 +98,67 @@ while mainRunning:
                         print("Invalid option!")
                         pass
                         
-                
         except FileNotFoundError:
             print("Invalid student ID!")
         except ValueError:
             print("Invalid option!")
-        
-    elif usrInput == 3:
-        print("Avaliable students:")
-        for file in os.listdir('Student_Data'):
-            with open(f'Student_Data\\{file}', 'rb') as r:
-                student = pickle.load(r)
-                print(f"ID:{file}. Full name: {student.fullName()}")
-        print("Enter the ID of the data you would like to access.")
-        id = input("Enter here:")
-        try:
-            with open(f'Student_Data\\{id}', 'rb') as r:
-                student = pickle.load(r)
-                print("Data loaded!")
-                print(f"Student full name: {student.fullName()}\n"
-                      f"Student age: {student.age}")
-        except FileNotFoundError:
-            print("Invalid student ID!")
+
+def accessStudentData():
+    print("Avaliable students:")
+    for file in os.listdir('Student_Data'):
+        with open(f'Student_Data\\{file}', 'rb') as r:
+            student = pickle.load(r)
+            print(f"ID:{file}. Full name: {student.fullName()}")
+    print("Enter the ID of the data you would like to access.")
+    id = input("Enter here:")
+    try:
+        with open(f'Student_Data\\{id}', 'rb') as r:
+            student = pickle.load(r)
+            print("Data loaded!")
+            print(f"Student full name: {student.fullName()}\n"
+                  f"Student age: {student.age}")
+    except FileNotFoundError:
+        print("Invalid student ID!")
+
+def addStudentGrades():
+    pass
+    
+def main():
+    mainRunning = True
+    print("Welcome to student data!")
+
+    while mainRunning:
+        startUp = True
+        while startUp:
+            try:
+                print("Please select an option:\n"
+                    "1. Create new student.\n"
+                    "2. Edit student data.\n"
+                    "3. Access student data.\n"
+                    "4. Add student grades")
+                usrInput = int(input("Choose your option: "))
+                if usrInput >= 1 and usrInput <= 4:
+                    startUp = False
+                    pass
+                else:
+                    print("Invalid option!")
+                    pass
+
+            except ValueError:
+                print("Invalid option!")
+                pass
+
+        if usrInput == 1:
+            createStudent()
+
+        elif usrInput == 2:
+            editStudentData()
+
+        elif usrInput == 3:
+            accessStudentData()
             
+        elif usrInput == 4:
+            addStudentGrades()
+            
+if __name__ == '__main__':
+    main()
