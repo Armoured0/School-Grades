@@ -87,7 +87,7 @@ def editStudentData():
                     
                 while continueEdit:
                     print("Would you like to continue editing?")
-                    usrInput = input("Y or N:")
+                    usrInput = input("Enter Here (Y/N): ")
                     if usrInput == "Y":
                         continueEdit = False
                         pass
@@ -118,8 +118,8 @@ def accessStudentData():
             print("Data loaded!")
             print(f"Student full name: {student.fullName()}\n"
                   f"Student age: {student.age}\n"
-                  f"Maths grade: {student.maths}\n"
-                  f"English grade: {student.english}")
+                  f"Maths grade: {student.letterGrade(student.maths)}\n"
+                  f"English grade: {student.letterGrade(student.english)}")
     except FileNotFoundError:
         print("Invalid student ID!")
 
@@ -132,46 +132,63 @@ def addStudentGrades():
                 student = pickle.load(r)
                 print(f"ID:{file}. Full name: {student.fullName()}")
         print("Enter the ID of the student you would like to add grades for.")
-        id = input("Enter here:")
+        id = input("Enter here:  ")
         with open(f'Student_Data\\{id}', 'rb') as r:
             student = pickle.load(r)
             
         print("Student current grades:\n"
-              f"Maths: {student.maths}\n"
-              f"English: {student.english}")
+              f"Maths: {student.letterGrade(student.maths)}\n"
+              f"English: {student.letterGrade(student.english)}")
+
+        choosingGrade = True
         
-        print("Please select a subject to edit:\n"
-              "1. Maths\n"
-              "2. English")
+        while choosingGrade:
+            print("Please select a subject to edit:\n"
+                  "1. Maths\n"
+                  "2. English")
+
+            usrInput = int(input("Choose your option: "))
+            if usrInput == 1:
+                enteringGrade = True
+                print("Enter your math grade as a percentage.")
+                while enteringGrade:
+                    usrInput = int(input("Enter grade (0-100): "))
+                    if usrInput > 0 and usrInput < 100:
+                        student.maths = usrInput
+                        with open(f'Student_Data\\{id}', 'wb') as f:
+                            pickle.dump(student, f)
+                        print(f"Changes have been saved at {id}")
+                        enteringGrade = False
+                    else:
+                        print("Invalid percentage!")
+
+            if usrInput == 2:
+                enteringGrade = True
+                print("Enter your english grade as a percentage.")
+                while enteringGrade:
+                    usrInput = int(input("Enter grade (0-100): "))
+                    if usrInput > 0 and usrInput < 100:
+                        student.english = usrInput
+                        with open(f'Student_Data\\{id}', 'wb') as f:
+                            pickle.dump(student, f)
+                        print(f"Changes have been saved at {id}")
+                        enteringGrade = False
+                    else:
+                        print("Invalid percentage!")
         
-        usrInput = int(input("Choose your option: "))
-        if usrInput == 1:
-            choosingGrade = True
-            print("Enter your math grade as a percentage.")
-            while choosingGrade:
-                usrInput = int(input("Enter grade (0-100): "))
-                if usrInput > 0 and usrInput < 100:
-                    student.maths = usrInput
-                    with open(f'Student_Data\\{id}', 'wb') as f:
-                        pickle.dump(student, f)
-                    print(f"Changes have been saved at {id}")
+            choosingEdit = True
+            while choosingEdit:         
+                print("Would you like to continue editing this student?")
+                usrInput = input("Enter here (Y/N): ")
+                if usrInput.upper() == "Y":
+                    choosingEdit = False
+                elif usrInput.upper() == "N":
+                    choosingEdit = False
                     choosingGrade = False
                 else:
-                    print("Invalid percentage!")
-                    
-        if usrInput == 2:
-            choosingGrade = True
-            print("Enter your english grade as a percentage.")
-            while choosingGrade:
-                usrInput = int(input("Enter grade (0-100): "))
-                if usrInput > 0 and usrInput < 100:
-                    student.english = usrInput
-                    with open(f'Student_Data\\{id}', 'wb') as f:
-                        pickle.dump(student, f)
-                    print(f"Changes have been saved at {id}")
-                    choosingGrade = False
-                else:
-                    print("Invalid percentage!")
+                    print("Invalid option!")
+                
+        
     
     except ValueError:
         print("Invalid option!")
@@ -182,7 +199,7 @@ def resetData():
     resettingData = True
     while resettingData:
         print("Are you sure you want to reset all student data?")
-        usrInput = input("Enter here (Y or N): ")
+        usrInput = input("Enter here (Y/N): ")
         if usrInput.upper() == "Y" or usrInput.upper() == "N":
             if usrInput.upper() == "Y":
                 with open('idCount.txt', 'w') as idCount:
@@ -198,6 +215,18 @@ def resetData():
             print("Invalid option!")
             pass
 
+def exitProgram():
+    choosing = True
+    while choosing:
+        print("Are you sure you want to exit?")
+        usrInput = input("Enter here (Y/N): ")
+        if usrInput.upper() == "Y":
+            print("Exiting...")
+            exit()
+        if usrInput.upper() == "N":
+            choosing = False
+            
+
 def main():
     mainRunning = True
     print("Welcome to student data!")
@@ -211,9 +240,10 @@ def main():
                     "2. Edit student data.\n"
                     "3. Access student data.\n"
                     "4. Add student grades.\n"
-                    "5. Reset all data.")
+                    "5. Reset all data.\n"
+                    "6. Exit.")
                 usrInput = int(input("Choose your option: "))
-                if usrInput >= 1 and usrInput <= 5:
+                if usrInput >= 1 and usrInput <= 6:
                     startUp = False
                     pass
                 else:
@@ -238,6 +268,9 @@ def main():
             
         elif usrInput == 5:
             resetData()
+            
+        elif usrInput == 6:
+            exitProgram()
             
 if __name__ == '__main__':
     main()
