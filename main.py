@@ -2,13 +2,13 @@ import pickle
 import os
 
 
-from classfile import Student
+from classfile import Student, Admin
 
 
 def createStudentObject():
-    firstName = input("What is the student's first name?")
-    lastName = input("What is the student's last name?")
-    studentAge = input("How old is the student?")
+    firstName = input("What is the student's first name? ")
+    lastName = input("What is the student's last name? ")
+    studentAge = input("How old is the student? ")
 
     student = Student(firstName, lastName, studentAge, None, None)
 
@@ -18,7 +18,7 @@ def createStudentObject():
 
 def saveStudentData(student):
     try:
-        with open('idCount.txt', 'r') as idCount:
+        with open('StudentIdCount.txt', 'r') as idCount:
             id = idCount.read()
         with open(f'Student_Data\\{id}', 'wb') as f:
             pickle.dump(student, f)
@@ -27,9 +27,38 @@ def saveStudentData(student):
             student = pickle.load(r)
             print(f"{student.fullName()} has been saved at {id}")
 
-        with open('idCount.txt', 'w') as idCount:
+        with open('StudentIdCount.txt', 'w') as idCount:
             id = int(id) + 1
             idCount.write(str(id))
+    except:
+        print("Save failed.")
+        pass
+
+def createAdminObject():
+    creatingAdmin = True
+    
+    while creatingAdmin:
+        userName = input("Select a username for your admin account: ")
+        for file in os.listdir('Admin_Data'):
+        
+        
+        userPassword = input("Select a password for your admin account: ")
+        
+        admin = Admin(userName, userPassword)
+        
+        print(f"Your username is: {admin.userName}.\n"
+            f"Your password is: {admin.password}")
+        return admin
+
+def saveAdminData(admin):
+    try:
+        with open(f'Admin_Data\\{admin.username}', 'wb') as f:
+            pickle.dump(admin, f)
+
+        with open(f'Admin_Data\\{id}', 'rb') as r:
+            admin = pickle.load(r)
+            print(f"{admin.username} has been saved.")
+            
     except:
         print("Save failed.")
         pass
@@ -153,7 +182,7 @@ def addStudentGrades():
                 print("Enter your math grade as a percentage.")
                 while enteringGrade:
                     usrInput = int(input("Enter grade (0-100): "))
-                    if usrInput > 0 and usrInput < 100:
+                    if usrInput > 0 and usrInput <= 100:
                         student.maths = usrInput
                         with open(f'Student_Data\\{id}', 'wb') as f:
                             pickle.dump(student, f)
@@ -167,7 +196,7 @@ def addStudentGrades():
                 print("Enter your english grade as a percentage.")
                 while enteringGrade:
                     usrInput = int(input("Enter grade (0-100): "))
-                    if usrInput > 0 and usrInput < 100:
+                    if usrInput > 0 and usrInput <= 100:
                         student.english = usrInput
                         with open(f'Student_Data\\{id}', 'wb') as f:
                             pickle.dump(student, f)
@@ -202,7 +231,7 @@ def resetData():
         usrInput = input("Enter here (Y/N): ")
         if usrInput.upper() == "Y" or usrInput.upper() == "N":
             if usrInput.upper() == "Y":
-                with open('idCount.txt', 'w') as idCount:
+                with open('StudentIdCount.txt', 'w') as idCount:
                      idCount.write("0")
                 for file in os.listdir('Student_Data'):
                     os.remove(f"Student_Data\\{file}")
@@ -224,8 +253,10 @@ def exitProgram():
             print("Exiting...")
             exit()
         if usrInput.upper() == "N":
-            choosing = False
-            
+            choosing = False            
+
+def createAdmin():
+    pass
 
 def main():
     mainRunning = True
@@ -243,7 +274,7 @@ def main():
                     "5. Reset all data.\n"
                     "6. Exit.")
                 usrInput = int(input("Choose your option: "))
-                if usrInput >= 1 and usrInput <= 6:
+                if usrInput >= 1 and usrInput <= 7:
                     startUp = False
                     pass
                 else:
@@ -270,6 +301,9 @@ def main():
             resetData()
             
         elif usrInput == 6:
+            createAdmin()
+        
+        elif usrInput == 7:
             exitProgram()
             
 if __name__ == '__main__':

@@ -8,18 +8,21 @@ class Student:
     def fullName(self):
         return f"{self.firstName} {self.lastName}"
     def letterGrade(self, gradePercent):
-        if int(gradePercent) <= 40:
-            return "E"
-        elif int(gradePercent) <= 50:
-            return "D"
-        elif int(gradePercent) <= 60:
-            return "C"
-        elif int(gradePercent) <= 70:
-            return "B"
-        elif int(gradePercent) <= 80:
-            return "A"
-        elif int(gradePercent) > 80:
-            return "A*"
+        try:
+            if int(gradePercent) <= 40:
+                return "E"
+            elif int(gradePercent) <= 50:
+                return "D"
+            elif int(gradePercent) <= 60:
+                return "C"
+            elif int(gradePercent) <= 70:
+                return "B"
+            elif int(gradePercent) <= 80:
+                return "A"
+            elif int(gradePercent) > 80:
+                return "A*"
+        except TypeError:
+            return "None"
         
 class Admin:
     def __init__(self, userName, password):
