@@ -38,17 +38,26 @@ def createAdminObject():
     creatingAdmin = True
     
     while creatingAdmin:
+        userNameCheck = True
         userName = input("Select a username for your admin account: ")
         for file in os.listdir('Admin_Data'):
-        
-        
-        userPassword = input("Select a password for your admin account: ")
-        
-        admin = Admin(userName, userPassword)
-        
-        print(f"Your username is: {admin.userName}.\n"
-            f"Your password is: {admin.password}")
-        return admin
+            if file == userName:
+                userNameCheck = False
+            else:
+                pass
+            
+        if userNameCheck:
+            userPassword = input("Select a password for your admin account: ")
+
+            admin = Admin(userName, userPassword)
+
+            print(f"Your username is: {admin.userName}.\n"
+                f"Your password is: {admin.password}")
+            creatingAdmin = False
+            return admin
+        else:
+            print("Username already taken. Please select another.")
+                
 
 def saveAdminData(admin):
     try:
@@ -256,7 +265,18 @@ def exitProgram():
             choosing = False            
 
 def createAdmin():
-    pass
+    choosingSave = True
+    admin = createAdminObject()
+    while choosingSave:
+        usrInput = input("Would you like to save this account? Y or N: ")
+        if usrInput.upper() == "Y":
+            choosingSave = False
+            saveAdminData(admin)
+        elif usrInput.upper() == "N":
+            choosingSave = False
+        else:
+            print("Invalid option!")
+            pass
 
 def main():
     mainRunning = True
