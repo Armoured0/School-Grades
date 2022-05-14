@@ -58,16 +58,14 @@ def createAdminObject():
         else:
             print("Username already taken. Please select another.")
                 
-
 def saveAdminData(admin):
     try:
-        with open(f'Admin_Data\\{admin.username}', 'wb') as f:
+        with open(f'Admin_Data\\{admin.userName}', 'wb') as f:
             pickle.dump(admin, f)
 
-        with open(f'Admin_Data\\{id}', 'rb') as r:
+        with open(f'Admin_Data\\{admin.userName}', 'rb') as r:
             admin = pickle.load(r)
-            print(f"{admin.username} has been saved.")
-            
+            print(f"{admin.userName} has been saved.")   
     except:
         print("Save failed.")
         pass
@@ -93,9 +91,10 @@ def editStudentData():
         try:
             print("Avaliable students:")
             for file in os.listdir('Student_Data'):
-                with open(f'Student_Data\\{file}', 'rb') as r:
-                    student = pickle.load(r)
-                    print(f"ID:{file}. Full name: {student.fullName()}")
+                if file != ".gitkeep":
+                    with open(f'Student_Data\\{file}', 'rb') as r:
+                        student = pickle.load(r)
+                        print(f"ID:{file}. Full name: {student.fullName()}")
             print("Enter the ID of the student you would like to edit.")
             id = input("Enter here:")
             with open(f'Student_Data\\{id}', 'rb') as r:
@@ -146,8 +145,9 @@ def accessStudentData():
     print("Avaliable students:")
     for file in os.listdir('Student_Data'):
         with open(f'Student_Data\\{file}', 'rb') as r:
-            student = pickle.load(r)
-            print(f"ID:{file}. Full name: {student.fullName()}")
+            if file != ".gitkeep":
+                student = pickle.load(r)
+                print(f"ID:{file}. Full name: {student.fullName()}")
     print("Enter the ID of the data you would like to access.")
     id = input("Enter here:")
     try:
@@ -167,8 +167,9 @@ def addStudentGrades():
         print("Avaliable students:")
         for file in os.listdir('Student_Data'):
             with open(f'Student_Data\\{file}', 'rb') as r:
-                student = pickle.load(r)
-                print(f"ID:{file}. Full name: {student.fullName()}")
+                if file != ".gitkeep":
+                    student = pickle.load(r)
+                    print(f"ID:{file}. Full name: {student.fullName()}")
         print("Enter the ID of the student you would like to add grades for.")
         id = input("Enter here:  ")
         with open(f'Student_Data\\{id}', 'rb') as r:
@@ -243,9 +244,10 @@ def resetData():
                 with open('StudentIdCount.txt', 'w') as idCount:
                      idCount.write("0")
                 for file in os.listdir('Student_Data'):
-                    os.remove(f"Student_Data\\{file}")
-                    print("All data has been reset!")
-                    resettingData = False
+                    if file != ".gitkeep":
+                        os.remove(f"Student_Data\\{file}")
+                        print("All data has been reset!")
+                resettingData = False
             if usrInput.upper() == "N":
                 print("Exiting!")
                 resettingData = False
@@ -292,7 +294,8 @@ def main():
                     "3. Access student data.\n"
                     "4. Add student grades.\n"
                     "5. Reset all data.\n"
-                    "6. Exit.")
+                    "6. Create admin account.\n"
+                    "7. Exit.")
                 usrInput = int(input("Choose your option: "))
                 if usrInput >= 1 and usrInput <= 7:
                     startUp = False
