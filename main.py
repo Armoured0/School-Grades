@@ -70,6 +70,24 @@ def saveAdminData(admin):
         print("Save failed.")
         pass
 
+def adminCheck():
+    loggingIn = True
+    while loggingIn:
+        usrInput = input("Enter admin username: ")
+        for file in os.listdir('Admin_Data'):
+            if file == usrInput:
+                with open(f'Admin_Data\\{file}', 'rb') as r:
+                    admin = pickle.load(r)
+                    usrInput = input("Enter admin password: ")
+                    if usrInput == admin.password:
+                        return True
+                    else:
+                        print("Credentials incorrect!")
+                        return False
+        print("Username not found!")
+
+
+
 def createStudent():
     choosingSave = True
     student = createStudentObject()
@@ -280,54 +298,61 @@ def createAdmin():
             print("Invalid option!")
             pass
 
-def main():
-    mainRunning = True
-    print("Welcome to student data!")
 
-    while mainRunning:
-        startUp = True
-        while startUp:
-            try:
-                print("Please select an option:\n"
-                    "1. Create new student.\n"
-                    "2. Edit student data.\n"
-                    "3. Access student data.\n"
-                    "4. Add student grades.\n"
-                    "5. Reset all data.\n"
-                    "6. Create admin account.\n"
-                    "7. Exit.")
-                usrInput = int(input("Choose your option: "))
-                if usrInput >= 1 and usrInput <= 7:
-                    startUp = False
-                    pass
-                else:
+def main():
+    print("You must login to access this application.")
+    if adminCheck() == True:
+        mainRunning = True
+        print("Login successful!")
+        print("Welcome to the student database!")
+        print("--------------------")
+        while mainRunning:
+            startUp = True
+            while startUp:
+                try:
+                    print("Please select an option:\n"
+                        "1. Create new student.\n"
+                        "2. Edit student data.\n"
+                        "3. Access student data.\n"
+                        "4. Add student grades.\n"
+                        "5. Reset all data.\n"
+                        "6. Create admin account.\n"
+                        "7. Exit.\n"
+                        "--------------------")
+                    usrInput = int(input("Choose your option: "))
+                    if usrInput >= 1 and usrInput <= 7:
+                        startUp = False
+                        pass
+                    else:
+                        print("Invalid option!")
+                        pass
+
+                except ValueError:
                     print("Invalid option!")
                     pass
 
-            except ValueError:
-                print("Invalid option!")
-                pass
+            if usrInput == 1:
+                createStudent()
 
-        if usrInput == 1:
-            createStudent()
+            elif usrInput == 2:
+                editStudentData()
 
-        elif usrInput == 2:
-            editStudentData()
+            elif usrInput == 3:
+                accessStudentData()
 
-        elif usrInput == 3:
-            accessStudentData()
-            
-        elif usrInput == 4:
-            addStudentGrades()
-            
-        elif usrInput == 5:
-            resetData()
-            
-        elif usrInput == 6:
-            createAdmin()
-        
-        elif usrInput == 7:
-            exitProgram()
+            elif usrInput == 4:
+                addStudentGrades()
+
+            elif usrInput == 5:
+                resetData()
+
+            elif usrInput == 6:
+                createAdmin()
+
+            elif usrInput == 7:
+                exitProgram()
+    else:
+        exit()
             
 if __name__ == '__main__':
     main()
