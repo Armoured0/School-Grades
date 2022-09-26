@@ -1,10 +1,14 @@
 class Student:
-    def __init__(self, firstName, lastName, age, maths, english):
+    def __init__(self, firstName, lastName, age, maths, english, physics, business, computerScience, latin):
         self.firstName = firstName
         self.lastName = lastName
         self.age = age
         self.maths = maths
         self.english = english
+        self.physics = physics
+        self.business = business
+        self.computerScience = computerScience
+        self.latin = latin
     def fullName(self):
         return f"{self.firstName} {self.lastName}"
     def letterGrade(self, gradePercent):
