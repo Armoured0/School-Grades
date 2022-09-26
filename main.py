@@ -165,7 +165,7 @@ def accessStudentData():
         with open(f'Student_Data\\{file}', 'rb') as r:
             if file != ".gitkeep":
                 student = pickle.load(r)
-                print(f"ID:{file}. Full name: {student.fullName()}")
+                print(f"ID: {file}. Full name: {student.fullName()}")
     print("Enter the ID of the data you would like to access.")
     id = input("Enter here:")
     try:
@@ -252,7 +252,7 @@ def addStudentGrades():
     except FileNotFoundError:
         print("Student ID not found!")
     
-def resetData():
+def resetStudentData():
     resettingData = True
     while resettingData:
         print("Are you sure you want to reset all student data?")
@@ -264,7 +264,26 @@ def resetData():
                 for file in os.listdir('Student_Data'):
                     if file != ".gitkeep":
                         os.remove(f"Student_Data\\{file}")
-                        print("All data has been reset!")
+                        print("All student has been reset!")
+                resettingData = False
+            if usrInput.upper() == "N":
+                print("Exiting!")
+                resettingData = False
+        else:
+            print("Invalid option!")
+            pass
+        
+def resetAdminData():
+    resettingData = True
+    while resettingData:
+        print("Are you sure you want to reset all admin data?")
+        usrInput = input("Enter here (Y/N): ")
+        if usrInput.upper() == "Y" or usrInput.upper() == "N":
+            if usrInput.upper() == "Y":
+                for file in os.listdir('Admin_Data'):
+                    if file != ".gitkeep" and file != "default":
+                        os.remove(f"Admin_Data\\{file}")
+                        print("All admin data has been reset!")
                 resettingData = False
             if usrInput.upper() == "N":
                 print("Exiting!")
@@ -305,22 +324,23 @@ def main():
         mainRunning = True
         print("Login successful!")
         print("Welcome to the student database!")
-        print("--------------------")
         while mainRunning:
             startUp = True
             while startUp:
                 try:
-                    print("Please select an option:\n"
+                    print("--------------------\n"
+                        "Please select an option:\n"
                         "1. Create new student.\n"
                         "2. Edit student data.\n"
                         "3. Access student data.\n"
                         "4. Add student grades.\n"
-                        "5. Reset all data.\n"
-                        "6. Create admin account.\n"
-                        "7. Exit.\n"
+                        "5. Reset student data.\n"
+                        "6. Reset admin data. \n"
+                        "7. Create admin account.\n"
+                        "8. Exit.\n"
                         "--------------------")
                     usrInput = int(input("Choose your option: "))
-                    if usrInput >= 1 and usrInput <= 7:
+                    if usrInput >= 1 and usrInput <= 8:
                         startUp = False
                         pass
                     else:
@@ -344,12 +364,15 @@ def main():
                 addStudentGrades()
 
             elif usrInput == 5:
-                resetData()
-
+                resetStudentData()
+                
             elif usrInput == 6:
-                createAdmin()
+                resetAdminData()
 
             elif usrInput == 7:
+                createAdmin()
+
+            elif usrInput == 8:
                 exitProgram()
     else:
         exit()
