@@ -4,13 +4,14 @@ import os
 
 from classfile import Student, Admin
 
+# other functions
 
 def createStudentObject():
     firstName = input("What is the student's first name? ")
     lastName = input("What is the student's last name? ")
     studentAge = input("How old is the student? ")
 
-    student = Student(firstName, lastName, studentAge, None, None)
+    student = Student(firstName, lastName, studentAge, None, None, None, None, None, None)
 
     print(f"This student is called {student.fullName()}.\n"
           f"They are {student.age} years old.")
@@ -86,7 +87,35 @@ def adminCheck():
                         return False
         print("Username not found!")
 
+def savedStudents():
+    for file in os.listdir('Student_Data'):
+        with open(f'Student_Data\\{file}', 'rb') as r:
+            if file != ".gitkeep":
+                student = pickle.load(r)
+                print(f"ID: {file}. Full name: {student.fullName()}")
+    print("--------------------")
 
+def studentCurrentGrades(student):
+    return ("--------------------\n"
+              "Student current grades:\n"
+              f"Maths: {student.letterGrade(student.maths)}\n"
+              f"English: {student.letterGrade(student.english)}\n"
+              f"Physics: {student.letterGrade(student.physics)}\n"
+              f"Business Studies: {student.letterGrade(student.business)}\n"
+              f"Computer Science: {student.letterGrade(student.computerScience)}\n"
+              f"Latin: {student.letterGrade(student.latin)}")
+
+def changeStudentGrade(student):
+    enteringGrade = True
+    while enteringGrade:
+        usrInput = int(input("Enter grade (0-100): "))
+        if usrInput >= 0 and usrInput <= 100:
+            enteringGrade = False
+            return usrInput
+        else:
+            print("Invalid percentage!")
+
+# menu procedures
 
 def createStudent():
     choosingSave = True
@@ -108,13 +137,9 @@ def editStudentData():
         editing = True
         try:
             print("Avaliable students:")
-            for file in os.listdir('Student_Data'):
-                if file != ".gitkeep":
-                    with open(f'Student_Data\\{file}', 'rb') as r:
-                        student = pickle.load(r)
-                        print(f"ID:{file}. Full name: {student.fullName()}")
+            savedStudents()
             print("Enter the ID of the student you would like to edit.")
-            id = input("Enter here:")
+            id = input("Enter here: ")
             with open(f'Student_Data\\{id}', 'rb') as r:
                 student = pickle.load(r)
             while editing:
@@ -125,15 +150,15 @@ def editStudentData():
                 usrInput = int(input("Enter here:"))
                 if usrInput == 1:
                     print(f"Student's name is currently {student.fullName()}")
-                    student.firstName = input("What is the students first name?")
-                    student.lastName = input("What is the students last name?")
+                    student.firstName = input("What is the students first name? ")
+                    student.lastName = input("What is the students last name? ")
                     with open(f'Student_Data\\{id}', 'wb') as f:
                         pickle.dump(student, f)
                         print(f"Changes have been saved at {id}")
                     
                 elif usrInput == 2:
                     print(f"Student's age is currently {student.age}")
-                    student.age = input("What is the students age?")
+                    student.age = input("What is the students age? ")
                     with open(f'Student_Data\\{id}', 'wb') as f:
                         pickle.dump(student, f)
                         print(f"Changes have been saved at {id}")
@@ -143,10 +168,10 @@ def editStudentData():
                 while continueEdit:
                     print("Would you like to continue editing?")
                     usrInput = input("Enter Here (Y/N): ")
-                    if usrInput == "Y":
+                    if usrInput.upper() == "Y":
                         continueEdit = False
                         pass
-                    elif usrInput == "N":
+                    elif usrInput.upper() == "N":
                         continueEdit = False
                         editing = False
                         pass
@@ -161,77 +186,90 @@ def editStudentData():
 
 def accessStudentData():
     print("Avaliable students:")
-    for file in os.listdir('Student_Data'):
-        with open(f'Student_Data\\{file}', 'rb') as r:
-            if file != ".gitkeep":
-                student = pickle.load(r)
-                print(f"ID: {file}. Full name: {student.fullName()}")
+    savedStudents()
     print("Enter the ID of the data you would like to access.")
-    id = input("Enter here:")
+    id = input("Enter here: ")
     try:
         with open(f'Student_Data\\{id}', 'rb') as r:
             student = pickle.load(r)
             print("Data loaded!")
-            print(f"Student full name: {student.fullName()}\n"
-                  f"Student age: {student.age}\n"
-                  f"Maths grade: {student.letterGrade(student.maths)}\n"
-                  f"English grade: {student.letterGrade(student.english)}")
+            print("--------------------\n"
+                  f"Student name: {student.fullName()}\n"
+                  f"Student age: {student.age}")
+            
+            print(studentCurrentGrades(student))
+
     except FileNotFoundError:
         print("Invalid student ID!")
 
 def addStudentGrades():
     try:
-        
         print("Avaliable students:")
-        for file in os.listdir('Student_Data'):
-            with open(f'Student_Data\\{file}', 'rb') as r:
-                if file != ".gitkeep":
-                    student = pickle.load(r)
-                    print(f"ID:{file}. Full name: {student.fullName()}")
+        savedStudents()
         print("Enter the ID of the student you would like to add grades for.")
-        id = input("Enter here:  ")
+        id = input("Enter here: ")
         with open(f'Student_Data\\{id}', 'rb') as r:
             student = pickle.load(r)
-            
-        print("Student current grades:\n"
-              f"Maths: {student.letterGrade(student.maths)}\n"
-              f"English: {student.letterGrade(student.english)}")
-
+        print(studentCurrentGrades(student))
+        
         choosingGrade = True
         
         while choosingGrade:
             print("Please select a subject to edit:\n"
                   "1. Maths\n"
-                  "2. English")
+                  "2. English\n"
+                  "3. Physics\n"
+                  "4. Business\n"
+                  "5. Computer Science\n"
+                  "6. Latin")
 
             usrInput = int(input("Choose your option: "))
+            
             if usrInput == 1:
-                enteringGrade = True
                 print("Enter your math grade as a percentage.")
-                while enteringGrade:
-                    usrInput = int(input("Enter grade (0-100): "))
-                    if usrInput > 0 and usrInput <= 100:
-                        student.maths = usrInput
-                        with open(f'Student_Data\\{id}', 'wb') as f:
-                            pickle.dump(student, f)
-                        print(f"Changes have been saved at {id}")
-                        enteringGrade = False
-                    else:
-                        print("Invalid percentage!")
+                student.maths = changeStudentGrade(student)
+                with open(f'Student_Data\\{id}', 'wb') as f:
+                    pickle.dump(student, f)
+                print(f"Changes have been saved at {id}")
 
-            if usrInput == 2:
-                enteringGrade = True
+
+            elif usrInput == 2:
                 print("Enter your english grade as a percentage.")
-                while enteringGrade:
-                    usrInput = int(input("Enter grade (0-100): "))
-                    if usrInput > 0 and usrInput <= 100:
-                        student.english = usrInput
-                        with open(f'Student_Data\\{id}', 'wb') as f:
-                            pickle.dump(student, f)
-                        print(f"Changes have been saved at {id}")
-                        enteringGrade = False
-                    else:
-                        print("Invalid percentage!")
+                student.english = changeStudentGrade(student)
+                with open(f'Student_Data\\{id}', 'wb') as f:
+                    pickle.dump(student, f)
+                print(f"Changes have been saved at {id}")
+                
+            elif usrInput == 3:
+                print("Enter your physics grade as a percentage.")
+                student.physics = changeStudentGrade(student)
+                with open(f'Student_Data\\{id}', 'wb') as f:
+                    pickle.dump(student, f)
+                print(f"Changes have been saved at {id}")
+                
+            elif usrInput == 4:
+                print("Enter your business grade as a percentage.")
+                student.business = changeStudentGrade(student)
+                with open(f'Student_Data\\{id}', 'wb') as f:
+                    pickle.dump(student, f)
+                print(f"Changes have been saved at {id}")
+                
+            elif usrInput == 5:
+                print("Enter your computer science grade as a percentage.")
+                student.computerScience = changeStudentGrade(student)
+                with open(f'Student_Data\\{id}', 'wb') as f:
+                    pickle.dump(student, f)
+                print(f"Changes have been saved at {id}")
+                
+            elif usrInput == 6:
+                print("Enter your latin grade as a percentage.")
+                student.latin = changeStudentGrade(student)
+                with open(f'Student_Data\\{id}', 'wb') as f:
+                    pickle.dump(student, f)
+                print(f"Changes have been saved at {id}")
+                        
+            else:
+                print("Invalid option!")
         
             choosingEdit = True
             while choosingEdit:         
@@ -259,12 +297,14 @@ def resetStudentData():
         usrInput = input("Enter here (Y/N): ")
         if usrInput.upper() == "Y" or usrInput.upper() == "N":
             if usrInput.upper() == "Y":
+                #resets student ID counter
                 with open('StudentIdCount.txt', 'w') as idCount:
                      idCount.write("0")
+                # deletes all files that aren't default user and .gitkeep files
                 for file in os.listdir('Student_Data'):
                     if file != ".gitkeep":
                         os.remove(f"Student_Data\\{file}")
-                        print("All student has been reset!")
+                print("All student data has been reset!")
                 resettingData = False
             if usrInput.upper() == "N":
                 print("Exiting!")
@@ -280,10 +320,11 @@ def resetAdminData():
         usrInput = input("Enter here (Y/N): ")
         if usrInput.upper() == "Y" or usrInput.upper() == "N":
             if usrInput.upper() == "Y":
+                # deletes all files that aren't default user and .gitkeep files
                 for file in os.listdir('Admin_Data'):
                     if file != ".gitkeep" and file != "default":
                         os.remove(f"Admin_Data\\{file}")
-                        print("All admin data has been reset!")
+                print("All admin data has been reset!")
                 resettingData = False
             if usrInput.upper() == "N":
                 print("Exiting!")
@@ -317,6 +358,7 @@ def createAdmin():
             print("Invalid option!")
             pass
 
+# main function
 
 def main():
     print("You must login to access this application.")
@@ -325,8 +367,8 @@ def main():
         print("Login successful!")
         print("Welcome to the student database!")
         while mainRunning:
-            startUp = True
-            while startUp:
+            menuRunning = True
+            while menuRunning:
                 try:
                     print("--------------------\n"
                         "Please select an option:\n"
@@ -341,7 +383,7 @@ def main():
                         "--------------------")
                     usrInput = int(input("Choose your option: "))
                     if usrInput >= 1 and usrInput <= 8:
-                        startUp = False
+                        menuRunning = False
                         pass
                     else:
                         print("Invalid option!")
