@@ -1,10 +1,21 @@
 import pickle
 import os
-
+import sqlite3
+from sqlite3 import Error
 
 from classfile import Student, Admin
 
 # other functions
+
+def createConnection(dbFile):
+    connection = None
+    try:
+        return sqlite3.connect(dbFile)
+    except Error as error:
+        print(error)
+    finally:
+        if connection:
+            connection.close()
 
 def createStudentObject():
     firstName = input("What is the student's first name? ")
