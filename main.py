@@ -1,5 +1,3 @@
-import pickle
-import os
 import sqlite3
 from sqlite3 import Error
 
@@ -7,18 +5,19 @@ from classfile import Student, Admin
 
 # other functions
 
-def createConnection(dbFile):
+def createConnection(dbFile="SchoolDatabase.sqlite"):
     connection = None
     try:
         return sqlite3.connect(dbFile)
     except Error as error:
         print(error)
+        exit()
     finally:
         if connection:
             connection.close()
             
 def establishTable():
-    connection = createConnection("StudentDatabase.sqlite")
+    connection = createConnection()
     cursor = connection.cursor()
     cursor.execute("""
                    CREATE TABLE IF NOT EXISTS students (
@@ -32,8 +31,27 @@ def establishTable():
                        businessGrade INTEGER,
                        computerScienceGrade INTEGER,
                        latinGrade INTEGER
-                   )
-                   """)
+                   )""")
+    
+    cursor.execute("""
+               CREATE TABLE IF NOT EXISTS admins (
+                   userName TEXT,
+                   password TEXT
+               )""")
+    
+    cursor.execute("SELECT userName FROM admins")
+    adminAccounts = cursor.fetchall()
+    
+    addDefaultUser = True
+    for userName in adminAccounts:
+        if userName[0] == "default":
+            addDefaultUser = False
+        else:
+            pass
+            
+    if addDefaultUser:
+        cursor.execute("INSERT INTO admins VALUES (?,?)", ('default', 'password'))
+    
     connection.commit()
     connection.close()
     
@@ -42,7 +60,7 @@ def createStudentObject():
     lastName = input("What is the student's last name? ")
     studentAge = input("How old is the student? ")
 
-    connection = createConnection("StudentDatabase.sqlite")
+    connection = createConnection()
     cursor = connection.cursor()
     
     cursor.execute("SELECT id FROM students ORDER BY id")
@@ -65,7 +83,7 @@ def createStudentObject():
     return student
 
 def saveStudentData(student):
-    connection = createConnection("StudentDatabase.sqlite")
+    connection = createConnection()
     cursor = connection.cursor()
     
     cursor.execute("SELECT id FROM students ORDER BY id")
@@ -75,7 +93,8 @@ def saveStudentData(student):
     for id in studentIds:
         if id[0] == student.id:
             update = True
-        
+        else:
+            pass    
 
     if update == True:
         cursor.execute("""UPDATE students SET firstName = ?, lastName = ?, age = ?, mathsGrade = ?,
@@ -93,7 +112,7 @@ def saveStudentData(student):
     connection.close()
 
 def buildStudentObject(id):
-    connection = createConnection("StudentDatabase.sqlite")
+    connection = createConnection()
     cursor = connection.cursor()
     
     cursor.execute("SELECT * FROM students WHERE id = ?", (id,))
@@ -105,19 +124,26 @@ def buildStudentObject(id):
     else:
         print("Invalid student ID!")
         return False
-    
+       
 def createAdminObject():
     creatingAdmin = True
     
     while creatingAdmin:
         userNameCheck = True
         userName = input("Select a username for your admin account: ")
-        for file in os.listdir('Admin_Data'):
-            if file == userName:
+        
+        connection = createConnection()
+        cursor = connection.cursor()
+        cursor.execute("SELECT userName FROM admins")
+        adminAccounts = cursor.fetchall()
+        cursor.close()
+        
+        for userDBName in adminAccounts:
+            if userDBName[0] == userName:
                 userNameCheck = False
             else:
                 pass
-            
+
         if userNameCheck:
             userPassword = input("Select a password for your admin account: ")
 
@@ -131,35 +157,43 @@ def createAdminObject():
             print("Username already taken. Please select another.")
                 
 def saveAdminData(admin):
-    try:
-        with open(f'Admin_Data\\{admin.userName}', 'wb') as f:
-            pickle.dump(admin, f)
+    connection = createConnection()
+    cursor = connection.cursor()
+    cursor.execute("INSERT INTO admins VALUES (?,?)", (admin.userName, admin.password))
+    connection.commit()
+    connection.close()
 
-        with open(f'Admin_Data\\{admin.userName}', 'rb') as r:
-            admin = pickle.load(r)
-            print(f"{admin.userName} has been saved.")   
-    except:
-        print("Save failed.")
-        pass
-
+def buildAdminObject(userName):
+    connection = createConnection()
+    cursor = connection.cursor()
+    
+    cursor.execute("SELECT * FROM admins WHERE userName = ?", (userName,))
+    adminDbData = cursor.fetchall()
+    connection.close()
+    
+    if adminDbData:
+        return Admin.construct(adminDbData[0])
+    else:
+        print("Username not found!")
+        return False
+    
 def adminCheck():
     loggingIn = True
     while loggingIn:
         usrInput = input("Enter admin username: ")
-        for file in os.listdir('Admin_Data'):
-            if file == usrInput:
-                with open(f'Admin_Data\\{file}', 'rb') as r:
-                    admin = pickle.load(r)
-                    usrInput = input("Enter admin password: ")
-                    if usrInput == admin.password:
-                        return True
-                    else:
-                        print("Credentials incorrect!")
-                        return False
-        print("Username not found!")
+        admin = buildAdminObject(usrInput)
+        if admin:
+            usrInput = input("Enter admin password: ")
+            if usrInput == admin.password:
+                return True
+            else:
+                print("Credentials incorrect!")
+                return False
+        else:
+            pass
 
 def savedStudents():
-    connection = createConnection("StudentDatabase.sqlite")
+    connection = createConnection()
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM students ORDER BY id")
     students = cursor.fetchall()
@@ -374,9 +408,10 @@ def resetStudentData():
         usrInput = input("Enter here (Y/N): ")
         if usrInput.upper() == "Y" or usrInput.upper() == "N":
             if usrInput.upper() == "Y":
-                connection = createConnection("StudentDatabase.sqlite")
+                connection = createConnection()
                 cursor = connection.cursor()
                 cursor.execute("DROP TABLE students")
+                cursor.close()
                 establishTable()
                 print("All student data has been reset!")
                 resettingData = False
@@ -394,10 +429,11 @@ def resetAdminData():
         usrInput = input("Enter here (Y/N): ")
         if usrInput.upper() == "Y" or usrInput.upper() == "N":
             if usrInput.upper() == "Y":
-                # deletes all files that aren't default user and .gitkeep files
-                for file in os.listdir('Admin_Data'):
-                    if file != ".gitkeep" and file != "default":
-                        os.remove(f"Admin_Data\\{file}")
+                connection = createConnection()
+                cursor = connection.cursor()
+                cursor.execute("DROP TABLE admins")
+                cursor.close()
+                establishTable()
                 print("All admin data has been reset!")
                 resettingData = False
             if usrInput.upper() == "N":
