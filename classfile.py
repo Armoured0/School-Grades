@@ -1,5 +1,7 @@
 class Student:
-    def __init__(self, firstName, lastName, age, maths, english, physics, business, computerScience, latin):
+    def __init__(self, id, firstName, lastName, age, maths=None, english=None,
+                 physics=None, business=None, computerScience=None, latin=None):
+        self.id = id
         self.firstName = firstName
         self.lastName = lastName
         self.age = age
@@ -9,6 +11,16 @@ class Student:
         self.business = business
         self.computerScience = computerScience
         self.latin = latin
+    
+    @classmethod
+    def construct(self, studentDataBase):
+        return self(studentDataBase[0], studentDataBase[1],
+                    studentDataBase[2], studentDataBase[3],
+                    studentDataBase[4], studentDataBase[5],
+                    studentDataBase[6], studentDataBase[7],
+                    studentDataBase[8], studentDataBase[9])
+
+    
     def fullName(self):
         return f"{self.firstName} {self.lastName}"
     def letterGrade(self, gradePercent):
