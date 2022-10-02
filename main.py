@@ -584,7 +584,7 @@ def main():
                 print("--------------------\n"
                     "Please select an option:\n"
                     "1. Create new student.\n"
-                    "2. Access student data.\n"
+                    "2. Access and edit student data.\n"
                     "3. Reset student data.\n"
                     "4. Reset admin data. \n"
                     "5. Create admin account.\n"
