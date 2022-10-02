@@ -1,52 +1,149 @@
-import pickle
-import os
-
+import sqlite3
+from sqlite3 import Error
 
 from classfile import Student, Admin
 
 # other functions
 
+def createConnection(dbFile="SchoolDatabase.sqlite"):
+    connection = None
+    try:
+        return sqlite3.connect(dbFile)
+    except Error as error:
+        print(error)
+        exit()
+    finally:
+        if connection:
+            connection.close()
+            
+def establishTable():
+    connection = createConnection()
+    cursor = connection.cursor()
+    cursor.execute("""
+                   CREATE TABLE IF NOT EXISTS students (
+                       id INTEGER,
+                       firstName TEXT,
+                       lastName TEXT,
+                       age INTEGER,
+                       mathsGrade INTEGER,
+                       englishGrade INTEGER,
+                       physicsGrade INTEGER,
+                       businessGrade INTEGER,
+                       computerScienceGrade INTEGER,
+                       latinGrade INTEGER
+                   )""")
+    
+    cursor.execute("""
+               CREATE TABLE IF NOT EXISTS admins (
+                   userName TEXT,
+                   password TEXT
+               )""")
+    
+    cursor.execute("SELECT userName FROM admins")
+    adminAccounts = cursor.fetchall()
+    
+    addDefaultUser = True
+    for userName in adminAccounts:
+        if userName[0] == "default":
+            addDefaultUser = False
+        else:
+            pass
+            
+    if addDefaultUser:
+        cursor.execute("INSERT INTO admins VALUES (?,?)", ('default', 'password'))
+    
+    connection.commit()
+    connection.close()
+    
 def createStudentObject():
     firstName = input("What is the student's first name? ")
     lastName = input("What is the student's last name? ")
     studentAge = input("How old is the student? ")
 
-    student = Student(firstName, lastName, studentAge, None, None, None, None, None, None)
+    connection = createConnection()
+    cursor = connection.cursor()
+    
+    cursor.execute("SELECT id FROM students ORDER BY id")
+    allStudentIds = cursor.fetchall()
+    
+    connection.close()
+    
+    if allStudentIds:
+        studentId = allStudentIds[-1][0]+1
+    else:
+        studentId = 0
+        
+    
+    student = Student(studentId, firstName, lastName, studentAge)
 
     print(f"This student is called {student.fullName()}.\n"
           f"They are {student.age} years old.")
+    
+    
     return student
 
 def saveStudentData(student):
-    try:
-        with open('StudentIdCount.txt', 'r') as idCount:
-            id = idCount.read()
-        with open(f'Student_Data\\{id}', 'wb') as f:
-            pickle.dump(student, f)
+    connection = createConnection()
+    cursor = connection.cursor()
+    
+    cursor.execute("SELECT id FROM students ORDER BY id")
+    studentIds = cursor.fetchall()
+    
+    update = False
+    for id in studentIds:
+        if id[0] == student.id:
+            update = True
+        else:
+            pass    
 
-        with open(f'Student_Data\\{id}', 'rb') as r:
-            student = pickle.load(r)
-            print(f"{student.fullName()} has been saved at {id}")
+    if update == True:
+        cursor.execute("""UPDATE students SET firstName = ?, lastName = ?, age = ?, mathsGrade = ?,
+                        englishGrade = ?, physicsGrade = ?, businessGrade= ?, computerScienceGrade = ?,
+                        latinGrade = ? WHERE id = ?""", (student.firstName, student.lastName, student.age,
+                        student.maths, student.english,student.physics, student.business, student.computerScience,
+                        student.latin, student.id))
+    else:
+        cursor.execute("INSERT INTO students VALUES (?,?,?,?,?,?,?,?,?,?)",
+           (student.id, student.firstName, student.lastName, student.age, student.maths,
+            student.english, student.physics, student.business, student.computerScience,
+            student.latin))
 
-        with open('StudentIdCount.txt', 'w') as idCount:
-            id = int(id) + 1
-            idCount.write(str(id))
-    except:
-        print("Save failed.")
-        pass
+    connection.commit()
+    connection.close()
 
+def buildStudentObject(id):
+    connection = createConnection()
+    cursor = connection.cursor()
+    
+    cursor.execute("SELECT * FROM students WHERE id = ?", (id,))
+    studentDbData = cursor.fetchall()
+    connection.close()
+    
+    if studentDbData:
+        return Student.construct(studentDbData[0])
+    else:
+        print("Invalid student ID!")
+        return False
+       
 def createAdminObject():
     creatingAdmin = True
     
     while creatingAdmin:
         userNameCheck = True
         userName = input("Select a username for your admin account: ")
-        for file in os.listdir('Admin_Data'):
-            if file == userName:
+        
+        connection = createConnection()
+        cursor = connection.cursor()
+        cursor.execute("SELECT userName FROM admins")
+        adminAccounts = cursor.fetchall()
+        cursor.close()
+        
+        for userDBName in adminAccounts:
+            if userDBName[0] == userName:
                 userNameCheck = False
             else:
                 pass
-            
+
         if userNameCheck:
             userPassword = input("Select a password for your admin account: ")
 
@@ -60,39 +157,51 @@ def createAdminObject():
             print("Username already taken. Please select another.")
                 
 def saveAdminData(admin):
-    try:
-        with open(f'Admin_Data\\{admin.userName}', 'wb') as f:
-            pickle.dump(admin, f)
+    connection = createConnection()
+    cursor = connection.cursor()
+    cursor.execute("INSERT INTO admins VALUES (?,?)", (admin.userName, admin.password))
+    connection.commit()
+    connection.close()
 
-        with open(f'Admin_Data\\{admin.userName}', 'rb') as r:
-            admin = pickle.load(r)
-            print(f"{admin.userName} has been saved.")   
-    except:
-        print("Save failed.")
-        pass
-
+def buildAdminObject(userName):
+    connection = createConnection()
+    cursor = connection.cursor()
+    
+    cursor.execute("SELECT * FROM admins WHERE userName = ?", (userName,))
+    adminDbData = cursor.fetchall()
+    connection.close()
+    
+    if adminDbData:
+        return Admin.construct(adminDbData[0])
+    else:
+        print("Username not found!")
+        return False
+    
 def adminCheck():
     loggingIn = True
     while loggingIn:
         usrInput = input("Enter admin username: ")
-        for file in os.listdir('Admin_Data'):
-            if file == usrInput:
-                with open(f'Admin_Data\\{file}', 'rb') as r:
-                    admin = pickle.load(r)
-                    usrInput = input("Enter admin password: ")
-                    if usrInput == admin.password:
-                        return True
-                    else:
-                        print("Credentials incorrect!")
-                        return False
-        print("Username not found!")
+        admin = buildAdminObject(usrInput)
+        if admin:
+            usrInput = input("Enter admin password: ")
+            if usrInput == admin.password:
+                return True
+            else:
+                print("Credentials incorrect!")
+                return False
+        else:
+            pass
 
 def savedStudents():
-    for file in os.listdir('Student_Data'):
-        with open(f'Student_Data\\{file}', 'rb') as r:
-            if file != ".gitkeep":
-                student = pickle.load(r)
-                print(f"ID: {file}. Full name: {student.fullName()}")
+    connection = createConnection()
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM students ORDER BY id")
+    students = cursor.fetchall()
+    connection.close()
+    
+    for student in students:
+        student = buildStudentObject(student[0])
+        print(f"ID: {student.id}. Full name: {student.fullName()}")
     print("--------------------")
 
 def studentCurrentGrades(student):
@@ -103,7 +212,8 @@ def studentCurrentGrades(student):
               f"Physics: {student.letterGrade(student.physics)}\n"
               f"Business Studies: {student.letterGrade(student.business)}\n"
               f"Computer Science: {student.letterGrade(student.computerScience)}\n"
-              f"Latin: {student.letterGrade(student.latin)}")
+              f"Latin: {student.letterGrade(student.latin)}\n"
+              "--------------------")
 
 def changeStudentGrade(student):
     enteringGrade = True
@@ -140,28 +250,25 @@ def editStudentData():
             savedStudents()
             print("Enter the ID of the student you would like to edit.")
             id = input("Enter here: ")
-            with open(f'Student_Data\\{id}', 'rb') as r:
-                student = pickle.load(r)
+            student = buildStudentObject(id)
             while editing:
                 continueEdit = True
                 print("What do you want to edit?\n"
                       "1. Name\n"
                       "2. Age")
-                usrInput = int(input("Enter here:"))
+                usrInput = int(input("Enter here: "))
                 if usrInput == 1:
                     print(f"Student's name is currently {student.fullName()}")
                     student.firstName = input("What is the students first name? ")
                     student.lastName = input("What is the students last name? ")
-                    with open(f'Student_Data\\{id}', 'wb') as f:
-                        pickle.dump(student, f)
-                        print(f"Changes have been saved at {id}")
+                    saveStudentData(student)
+                    print(f"Changes have been saved at {id}")
                     
                 elif usrInput == 2:
                     print(f"Student's age is currently {student.age}")
                     student.age = input("What is the students age? ")
-                    with open(f'Student_Data\\{id}', 'wb') as f:
-                        pickle.dump(student, f)
-                        print(f"Changes have been saved at {id}")
+                    saveStudentData(student)
+                    print(f"Changes have been saved at {id}")
                 else:
                     print("Invalid option!")
                     
@@ -185,34 +292,46 @@ def editStudentData():
             print("Invalid option!")
 
 def accessStudentData():
-    print("Avaliable students:")
-    savedStudents()
-    print("Enter the ID of the data you would like to access.")
-    id = input("Enter here: ")
-    try:
-        with open(f'Student_Data\\{id}', 'rb') as r:
-            student = pickle.load(r)
+    selecting = True
+    while selecting:
+        print("Avaliable students:")
+        savedStudents()
+        print("Enter the ID of the data you would like to access.")
+        id = input("Enter here: ")
+
+        student = buildStudentObject(id)
+        if student:
             print("Data loaded!")
             print("--------------------\n"
                   f"Student name: {student.fullName()}\n"
-                  f"Student age: {student.age}")
-            
+                  f"Student age: {student.age}")     
             print(studentCurrentGrades(student))
-
-    except FileNotFoundError:
-        print("Invalid student ID!")
+            
+            choosingContinue = True
+            while choosingContinue:         
+                print("Would you like to continue accessing data?")
+                usrInput = input("Enter here (Y/N): ")
+                if usrInput.upper() == "Y":
+                    choosingContinue = False
+                elif usrInput.upper() == "N":
+                    choosingContinue = False
+                    selecting = False
+                else:
+                    print("Invalid option!")
 
 def addStudentGrades():
     try:
-        print("Avaliable students:")
-        savedStudents()
-        print("Enter the ID of the student you would like to add grades for.")
-        id = input("Enter here: ")
-        with open(f'Student_Data\\{id}', 'rb') as r:
-            student = pickle.load(r)
-        print(studentCurrentGrades(student))
-        
-        choosingGrade = True
+        selecting = True
+        while selecting:
+            print("Avaliable students:")
+            savedStudents()
+            print("Enter the ID of the student you would like to add grades for.")
+            id = input("Enter here: ")
+            student = buildStudentObject(id)
+            if student:
+                print(studentCurrentGrades(student))
+                choosingGrade = True
+                selecting = False
         
         while choosingGrade:
             print("Please select a subject to edit:\n"
@@ -228,44 +347,38 @@ def addStudentGrades():
             if usrInput == 1:
                 print("Enter your math grade as a percentage.")
                 student.maths = changeStudentGrade(student)
-                with open(f'Student_Data\\{id}', 'wb') as f:
-                    pickle.dump(student, f)
+                saveStudentData(student)
                 print(f"Changes have been saved at {id}")
 
 
             elif usrInput == 2:
                 print("Enter your english grade as a percentage.")
                 student.english = changeStudentGrade(student)
-                with open(f'Student_Data\\{id}', 'wb') as f:
-                    pickle.dump(student, f)
+                saveStudentData(student)
                 print(f"Changes have been saved at {id}")
                 
             elif usrInput == 3:
                 print("Enter your physics grade as a percentage.")
                 student.physics = changeStudentGrade(student)
-                with open(f'Student_Data\\{id}', 'wb') as f:
-                    pickle.dump(student, f)
+                saveStudentData(student)
                 print(f"Changes have been saved at {id}")
                 
             elif usrInput == 4:
                 print("Enter your business grade as a percentage.")
                 student.business = changeStudentGrade(student)
-                with open(f'Student_Data\\{id}', 'wb') as f:
-                    pickle.dump(student, f)
+                saveStudentData(student)
                 print(f"Changes have been saved at {id}")
                 
             elif usrInput == 5:
                 print("Enter your computer science grade as a percentage.")
                 student.computerScience = changeStudentGrade(student)
-                with open(f'Student_Data\\{id}', 'wb') as f:
-                    pickle.dump(student, f)
+                saveStudentData(student)
                 print(f"Changes have been saved at {id}")
                 
             elif usrInput == 6:
                 print("Enter your latin grade as a percentage.")
                 student.latin = changeStudentGrade(student)
-                with open(f'Student_Data\\{id}', 'wb') as f:
-                    pickle.dump(student, f)
+                saveStudentData(student)
                 print(f"Changes have been saved at {id}")
                         
             else:
@@ -287,8 +400,6 @@ def addStudentGrades():
     
     except ValueError:
         print("Invalid option!")
-    except FileNotFoundError:
-        print("Student ID not found!")
     
 def resetStudentData():
     resettingData = True
@@ -297,13 +408,11 @@ def resetStudentData():
         usrInput = input("Enter here (Y/N): ")
         if usrInput.upper() == "Y" or usrInput.upper() == "N":
             if usrInput.upper() == "Y":
-                #resets student ID counter
-                with open('StudentIdCount.txt', 'w') as idCount:
-                     idCount.write("0")
-                # deletes all files that aren't default user and .gitkeep files
-                for file in os.listdir('Student_Data'):
-                    if file != ".gitkeep":
-                        os.remove(f"Student_Data\\{file}")
+                connection = createConnection()
+                cursor = connection.cursor()
+                cursor.execute("DROP TABLE students")
+                cursor.close()
+                establishTable()
                 print("All student data has been reset!")
                 resettingData = False
             if usrInput.upper() == "N":
@@ -320,10 +429,11 @@ def resetAdminData():
         usrInput = input("Enter here (Y/N): ")
         if usrInput.upper() == "Y" or usrInput.upper() == "N":
             if usrInput.upper() == "Y":
-                # deletes all files that aren't default user and .gitkeep files
-                for file in os.listdir('Admin_Data'):
-                    if file != ".gitkeep" and file != "default":
-                        os.remove(f"Admin_Data\\{file}")
+                connection = createConnection()
+                cursor = connection.cursor()
+                cursor.execute("DROP TABLE admins")
+                cursor.close()
+                establishTable()
                 print("All admin data has been reset!")
                 resettingData = False
             if usrInput.upper() == "N":
@@ -361,6 +471,7 @@ def createAdmin():
 # main function
 
 def main():
+    establishTable()
     print("You must login to access this application.")
     if adminCheck() == True:
         mainRunning = True
@@ -388,36 +499,28 @@ def main():
                     else:
                         print("Invalid option!")
                         pass
-
                 except ValueError:
                     print("Invalid option!")
                     pass
 
             if usrInput == 1:
                 createStudent()
-
             elif usrInput == 2:
                 editStudentData()
-
             elif usrInput == 3:
                 accessStudentData()
-
             elif usrInput == 4:
                 addStudentGrades()
-
             elif usrInput == 5:
                 resetStudentData()
-                
             elif usrInput == 6:
                 resetAdminData()
-
             elif usrInput == 7:
                 createAdmin()
-
             elif usrInput == 8:
                 exitProgram()
-    else:
-        exit()
+            else:
+                exit()
             
 if __name__ == '__main__':
     main()
