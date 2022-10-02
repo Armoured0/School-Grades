@@ -1,5 +1,6 @@
 import sqlite3
-from sqlite3 import Error
+from sqlite3 import Cursor, Error
+from unittest import result
 
 from classfile import Student, Admin
 
@@ -88,7 +89,7 @@ def createStudentObject():
     
     return student
 
-def saveStudentData(student):
+def saveStudentData(student, idChange=False):
     connection = createConnection()
     cursor = connection.cursor()
     
@@ -108,6 +109,10 @@ def saveStudentData(student):
                         latinGrade = ? WHERE id = ?""", (student.firstName, student.lastName, student.age,
                         student.maths, student.english,student.physics, student.business, student.computerScience,
                         student.latin, student.id))
+    
+    elif idChange:
+        cursor.execute("""UPDATE students SET id = ? WHERE id = ?""", (student.id, student.id+1))
+    
     else:
         cursor.execute("INSERT INTO students VALUES (?,?,?,?,?,?,?,?,?,?)",
            (student.id, student.firstName, student.lastName, student.age, student.maths,
@@ -142,7 +147,7 @@ def createAdminObject():
         cursor = connection.cursor()
         cursor.execute("SELECT userName FROM admins")
         adminAccounts = cursor.fetchall()
-        cursor.close()
+        connection.close()
         
         for userDBName in adminAccounts:
             if userDBName[0] == userName:
@@ -205,10 +210,16 @@ def savedStudents():
     students = cursor.fetchall()
     connection.close()
     
-    for student in students:
-        student = buildStudentObject(student[0])
-        print(f"ID: {student.id}. Full name: {student.fullName()}")
-    print("--------------------")
+    if students:
+        print("--------------------")
+        print("Avaliable students:")
+        for student in students:
+            student = buildStudentObject(student[0])
+            print(f"ID: {student.id}. Full name: {student.fullName()}")
+        return True
+    else:
+        print("No avaliable students")
+        return False
 
 def studentCurrentGrades(student):
     return ("--------------------\n"
@@ -221,7 +232,7 @@ def studentCurrentGrades(student):
               f"Latin: {student.letterGrade(student.latin)}\n"
               "--------------------")
 
-def changeStudentGrade(student):
+def changeStudentGrade():
     enteringGrade = True
     while enteringGrade:
         usrInput = int(input("Enter grade (0-100): "))
@@ -230,6 +241,34 @@ def changeStudentGrade(student):
             return usrInput
         else:
             print("Invalid percentage!")
+
+def databaseSearch(query):
+    results = []
+    connection = createConnection()
+    cursor = connection.cursor()
+    
+    cursor.execute("SELECT id, firstName, lastName FROM students")
+    students = cursor.fetchall()
+    
+    for student in students:
+        if query.lower() in f"{student[1].lower()} {student[2].lower()}":
+            results.append(student)
+                     
+    connection.close()
+    return results
+
+def deleteStudentRecord(rmStudent):
+    connection = createConnection()
+    cursor = connection.cursor()
+    cursor.execute("DELETE from students WHERE id = ?", (rmStudent.id,))
+    connection.commit()
+    cursor.execute("SELECT id from students")
+    studentIds = cursor.fetchall()
+    for id in studentIds:
+        if id[0] > rmStudent.id:
+            student = buildStudentObject(id[0])
+            student.id = student.id - 1
+            saveStudentData(student, True)
 
 # menu procedures
 
@@ -249,14 +288,9 @@ def createStudent():
             print("Invalid option!")
             pass
 
-def editStudentData():
+def editStudentData(student):
         editing = True
         try:
-            print("Avaliable students:")
-            savedStudents()
-            print("Enter the ID of the student you would like to edit.")
-            id = input("Enter here: ")
-            student = buildStudentObject(id)
             while editing:
                 continueEdit = True
                 print("What do you want to edit?\n"
@@ -268,13 +302,13 @@ def editStudentData():
                     student.firstName = input("What is the students first name? ")
                     student.lastName = input("What is the students last name? ")
                     saveStudentData(student)
-                    print(f"Changes have been saved at {id}")
+                    print(f"Changes have been saved at {student.id}")
                     
                 elif usrInput == 2:
                     print(f"Student's age is currently {student.age}")
                     student.age = input("What is the students age? ")
                     saveStudentData(student)
-                    print(f"Changes have been saved at {id}")
+                    print(f"Changes have been saved at {student.id}")
                 else:
                     print("Invalid option!")
                     
@@ -292,53 +326,116 @@ def editStudentData():
                         print("Invalid option!")
                         pass
                         
-        except FileNotFoundError:
-            print("Invalid student ID!")
         except ValueError:
             print("Invalid option!")
 
 def accessStudentData():
-    selecting = True
-    while selecting:
-        print("Avaliable students:")
-        savedStudents()
-        print("Enter the ID of the data you would like to access.")
-        id = input("Enter here: ")
+    searchingForStudent = True
+    exiting = False
+    accessingData = True
+    while accessingData:
+        while searchingForStudent:
+            try:
+                print("--------------------\n"
+                      "How would you like to find your student?\n"
+                      "1. View all available students.\n"
+                      "2. Search for student by name.\n"
+                      "3. Exit")
+                usrInput = int(input("Choose your option: "))
 
-        student = buildStudentObject(id)
-        if student:
-            print("Data loaded!")
-            print("--------------------\n"
-                  f"Student name: {student.fullName()}\n"
-                  f"Student age: {student.age}")     
-            print(studentCurrentGrades(student))
-            
-            choosingContinue = True
-            while choosingContinue:         
-                print("Would you like to continue accessing data?")
-                usrInput = input("Enter here (Y/N): ")
-                if usrInput.upper() == "Y":
-                    choosingContinue = False
-                elif usrInput.upper() == "N":
-                    choosingContinue = False
-                    selecting = False
+                if usrInput == 1:
+                    if savedStudents():
+                        searchingForStudent = False
+                    else:
+                        searchingForStudent = False
+                        accessingData = False
+
+                elif usrInput == 2:
+                    studentName = input("Enter name of student: ")
+                    matches = databaseSearch(studentName)
+                    if matches:
+                        print("--------------------\nMatching students accounts:")
+                        for student in matches:
+                            student = buildStudentObject(student[0])
+                            print(f"ID: {student.id}. Full name: {student.fullName()}.")
+
+                        searchingForStudent = False
+                    else:
+                        print("No matches found!")
+                
+                elif usrInput == 3:
+                    searchingForStudent = False
+                    accessingData = False
+                    exiting = True
+                    
                 else:
-                    print("Invalid option!")
+                    print("Invalid option!")    
 
-def addStudentGrades():
-    try:
-        selecting = True
-        while selecting:
-            print("Avaliable students:")
-            savedStudents()
-            print("Enter the ID of the student you would like to add grades for.")
+            except ValueError:
+                print("Invalid option!")
+                
+        if not exiting:    
+            print("--------------------\nEnter the ID of the student profile you would like to access.")
             id = input("Enter here: ")
             student = buildStudentObject(id)
             if student:
-                print(studentCurrentGrades(student))
-                choosingGrade = True
-                selecting = False
-        
+                usingProfile = True
+                while usingProfile:
+                    print(f"---- Student Profile ----\n"
+                          f"ID: {student.id}\n"
+                          f"Name: {student.fullName()}\n"
+                          f"Age: {student.age}\n"
+                          "---- Student Grades -----\n"
+                          f"Maths - {student.letterGrade(student.maths)}\n"
+                          f"English - {student.letterGrade(student.english)}\n"
+                          f"Physics - {student.letterGrade(student.physics)}\n"
+                          f"Business - {student.letterGrade(student.business)}\n"
+                          f"Computer Science - {student.letterGrade(student.computerScience)}\n"
+                          f"Latin - {student.letterGrade(student.latin)}\n"
+                          "-------- Options --------\n"
+                          "1. Edit Credentials\n"
+                          "2. Add/Edit Grades\n"
+                          "3. Delete Profile\n"
+                          "4. Exit Menu")
+
+                    try:
+                        usrInput = int(input("Enter here: "))
+
+                        if usrInput == 1:
+                            editStudentData(student)
+                        if usrInput == 2:
+                            addStudentGrades(student)
+                        if usrInput == 3:
+                            choosing = True
+                            
+                            while choosing:
+                                print("Are you sure you want to delete this account?")
+                                usrInput = input("Enter here (Y/N): ")
+                                
+                                if usrInput.upper() == "Y":
+                                    deleteStudentRecord(student)
+                                    print("Account deleted!")
+                                    
+                                    choosing = False
+                                    searchingForStudent = True
+                                    usingProfile = False
+                                elif usrInput.upper() == "N":
+                                    choosing = False
+                                else:
+                                    print("Invalid option!")
+                                
+                        if usrInput == 4:
+                            searchingForStudent = True
+                            usingProfile = False
+
+                    except ValueError:
+                        print("Invalid option!")
+            else:
+                pass
+
+def addStudentGrades(student):
+    try:
+        choosingGrade = True
         while choosingGrade:
             print("Please select a subject to edit:\n"
                   "1. Maths\n"
@@ -352,47 +449,46 @@ def addStudentGrades():
             
             if usrInput == 1:
                 print("Enter your math grade as a percentage.")
-                student.maths = changeStudentGrade(student)
+                student.maths = changeStudentGrade()
                 saveStudentData(student)
-                print(f"Changes have been saved at {id}")
-
+                print(f"Changes have been saved at {student.id}")
 
             elif usrInput == 2:
                 print("Enter your english grade as a percentage.")
-                student.english = changeStudentGrade(student)
+                student.english = changeStudentGrade()
                 saveStudentData(student)
-                print(f"Changes have been saved at {id}")
+                print(f"Changes have been saved at {student.id}")
                 
             elif usrInput == 3:
                 print("Enter your physics grade as a percentage.")
-                student.physics = changeStudentGrade(student)
+                student.physics = changeStudentGrade()
                 saveStudentData(student)
-                print(f"Changes have been saved at {id}")
+                print(f"Changes have been saved at {student.id}")
                 
             elif usrInput == 4:
                 print("Enter your business grade as a percentage.")
-                student.business = changeStudentGrade(student)
+                student.business = changeStudentGrade()
                 saveStudentData(student)
-                print(f"Changes have been saved at {id}")
+                print(f"Changes have been saved at {student.id}")
                 
             elif usrInput == 5:
                 print("Enter your computer science grade as a percentage.")
-                student.computerScience = changeStudentGrade(student)
+                student.computerScience = changeStudentGrade()
                 saveStudentData(student)
-                print(f"Changes have been saved at {id}")
+                print(f"Changes have been saved at {student.id}")
                 
             elif usrInput == 6:
                 print("Enter your latin grade as a percentage.")
-                student.latin = changeStudentGrade(student)
+                student.latin = changeStudentGrade()
                 saveStudentData(student)
-                print(f"Changes have been saved at {id}")
+                print(f"Changes have been saved at {student.id}")
                         
             else:
                 print("Invalid option!")
         
             choosingEdit = True
             while choosingEdit:         
-                print("Would you like to continue editing this student?")
+                print("Would you like to continue editing this student's grades?")
                 usrInput = input("Enter here (Y/N): ")
                 if usrInput.upper() == "Y":
                     choosingEdit = False
@@ -402,8 +498,6 @@ def addStudentGrades():
                 else:
                     print("Invalid option!")
                 
-        
-    
     except ValueError:
         print("Invalid option!")
     
@@ -417,7 +511,7 @@ def resetStudentData():
                 connection = createConnection()
                 cursor = connection.cursor()
                 cursor.execute("DROP TABLE students")
-                cursor.close()
+                connection.close()
                 establishTable()
                 print("All student data has been reset!")
                 resettingData = False
@@ -438,7 +532,7 @@ def resetAdminData():
                 connection = createConnection()
                 cursor = connection.cursor()
                 cursor.execute("DROP TABLE admins")
-                cursor.close()
+                connection.close()
                 establishTable()
                 print("All admin data has been reset!")
                 resettingData = False
@@ -457,8 +551,10 @@ def exitProgram():
         if usrInput.upper() == "Y":
             print("Exiting...")
             exit()
-        if usrInput.upper() == "N":
-            choosing = False            
+        elif usrInput.upper() == "N":
+            choosing = False
+        else:
+            print("Invalid option!")      
 
 def createAdmin():
     choosingSave = True
@@ -484,49 +580,34 @@ def main():
         print("Login successful!")
         print("Welcome to the student database!")
         while mainRunning:
-            menuRunning = True
-            while menuRunning:
-                try:
-                    print("--------------------\n"
-                        "Please select an option:\n"
-                        "1. Create new student.\n"
-                        "2. Edit student data.\n"
-                        "3. Access student data.\n"
-                        "4. Add student grades.\n"
-                        "5. Reset student data.\n"
-                        "6. Reset admin data. \n"
-                        "7. Create admin account.\n"
-                        "8. Exit.\n"
-                        "--------------------")
-                    usrInput = int(input("Choose your option: "))
-                    if usrInput >= 1 and usrInput <= 8:
-                        menuRunning = False
-                        pass
-                    else:
-                        print("Invalid option!")
-                        pass
-                except ValueError:
+            try:
+                print("--------------------\n"
+                    "Please select an option:\n"
+                    "1. Create new student.\n"
+                    "2. Access student data.\n"
+                    "3. Reset student data.\n"
+                    "4. Reset admin data. \n"
+                    "5. Create admin account.\n"
+                    "6. Exit.\n"
+                    "--------------------")
+                usrInput = int(input("Choose your option: "))
+                if usrInput == 1:
+                    createStudent()
+                elif usrInput == 2:
+                    accessStudentData()
+                elif usrInput == 3:
+                    resetStudentData()
+                elif usrInput == 4:
+                    resetAdminData()
+                elif usrInput == 5:
+                    createAdmin()
+                elif usrInput == 6:
+                    exitProgram()
+                else:
                     print("Invalid option!")
-                    pass
-
-            if usrInput == 1:
-                createStudent()
-            elif usrInput == 2:
-                editStudentData()
-            elif usrInput == 3:
-                accessStudentData()
-            elif usrInput == 4:
-                addStudentGrades()
-            elif usrInput == 5:
-                resetStudentData()
-            elif usrInput == 6:
-                resetAdminData()
-            elif usrInput == 7:
-                createAdmin()
-            elif usrInput == 8:
-                exitProgram()
-            else:
-                exit()
+                    
+            except ValueError:
+                print("Invalid option")
             
 if __name__ == '__main__':
     main()

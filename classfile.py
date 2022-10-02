@@ -22,6 +22,7 @@ class Student:
 
     def fullName(self):
         return f"{self.firstName} {self.lastName}"
+    
     def letterGrade(self, gradePercent):
         try:
             if int(gradePercent) <= 40:
@@ -43,15 +44,17 @@ class Admin:
     def __init__(self, userName, password):
         self.userName = userName
         self.password = password
+    
     @classmethod
     def construct(self, studentDataBase):
-        return self(studentDataBase[0], studentDataBase[1])
+        return self(studentDataBase[0], 
+                    studentDataBase[1])
+    
     def passwordCheck(self, usrPassword):
         if usrPassword == self.password:
             return True
         else:
             return False
-        
-        
+           
 if __name__ == '__main__':
     print("Please run the main script!")
