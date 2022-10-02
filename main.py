@@ -56,10 +56,23 @@ def establishTable():
     connection.close()
     
 def createStudentObject():
-    firstName = input("What is the student's first name? ")
-    lastName = input("What is the student's last name? ")
-    studentAge = input("How old is the student? ")
+    creatingStudentObject = True
+    while creatingStudentObject:
+        try:
+            firstName = input("What is the student's first name? ")
+            lastName = input("What is the student's last name? ")
+            studentAge = int(input("How old is the student? "))
+        except ValueError:
+            print("Invalid option!")
+        else:
+            creatingStudentObject = False
 
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+    student = Student(firstName, lastName, studentAge, None, None, None, None, None, None)
+=======
+>>>>>>> Stashed changes
     connection = createConnection()
     cursor = connection.cursor()
     
@@ -73,8 +86,13 @@ def createStudentObject():
     else:
         studentId = 0
         
+<<<<<<< Updated upstream
     
     student = Student(studentId, firstName, lastName, studentAge)
+=======
+    student = Student(studentId, firstName, lastName, studentAge)
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 
     print(f"This student is called {student.fullName()}.\n"
           f"They are {student.age} years old.")
