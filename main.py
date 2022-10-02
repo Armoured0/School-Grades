@@ -67,12 +67,6 @@ def createStudentObject():
         else:
             creatingStudentObject = False
 
-<<<<<<< Updated upstream
-=======
-<<<<<<< Updated upstream
-    student = Student(firstName, lastName, studentAge, None, None, None, None, None, None)
-=======
->>>>>>> Stashed changes
     connection = createConnection()
     cursor = connection.cursor()
     
@@ -86,13 +80,7 @@ def createStudentObject():
     else:
         studentId = 0
         
-<<<<<<< Updated upstream
-    
     student = Student(studentId, firstName, lastName, studentAge)
-=======
-    student = Student(studentId, firstName, lastName, studentAge)
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 
     print(f"This student is called {student.fullName()}.\n"
           f"They are {student.age} years old.")
