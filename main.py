@@ -349,6 +349,7 @@ def accessStudentData():
                     else:
                         searchingForStudent = False
                         accessingData = False
+                        exiting = True
 
                 elif usrInput == 2:
                     studentName = input("Enter name of student: ")
@@ -570,6 +571,42 @@ def createAdmin():
             print("Invalid option!")
             pass
 
+def manageAdminAccounts():
+    managingAccounts = True
+    usingMenu = True
+    try:
+        while managingAccounts:
+            while usingMenu:
+                print("Choose an option:\n"
+                      "1. Create admin accounts.\n"
+                      "2. Delete admin accounts.\n"
+                      "3. Exit")
+                usrInput = int(input("Enter here: "))
+                
+                if usrInput == 1:
+                    createAdmin()
+                    usingMenu = False
+                elif usrInput == 2:
+                    pass
+                elif usrInput == 3:
+                    choosing = True
+                    while choosing:
+                        print("Are you sure you want to exit?")
+                        usrInput = input("Enter here (Y/N): ")
+                        if usrInput.upper() == "Y":
+                            usingMenu = False
+                            managingAccounts = False
+                        elif usrInput.upper() == "N":
+                            choosing = False
+                        else:
+                            print("Invalid option!")
+                else:
+                    print("Invalid option!")
+             
+            
+    except ValueError:
+        print("Invalid option!")
+
 # main function
 
 def main():
@@ -586,9 +623,10 @@ def main():
                     "1. Create new student.\n"
                     "2. Access and edit student data.\n"
                     "3. Reset student data.\n"
-                    "4. Reset admin data. \n"
+                    "4. Reset admin data.\n"
                     "5. Create admin account.\n"
-                    "6. Exit.\n"
+                    "6. Manage admin accounts.\n"
+                    "7. Exit.\n"
                     "--------------------")
                 usrInput = int(input("Choose your option: "))
                 if usrInput == 1:
@@ -602,6 +640,8 @@ def main():
                 elif usrInput == 5:
                     createAdmin()
                 elif usrInput == 6:
+                    manageAdminAccounts()
+                elif usrInput == 7:
                     exitProgram()
                 else:
                     print("Invalid option!")
