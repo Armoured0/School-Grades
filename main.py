@@ -1,10 +1,9 @@
 import sqlite3
 from sqlite3 import Cursor, Error
-from unittest import result
 
 from classfile import Student, Admin
 
-# other functions
+# functions
 
 def createConnection(dbFile="SchoolDatabase.sqlite"):
     connection = None
@@ -43,14 +42,13 @@ def establishTable():
     cursor.execute("SELECT userName FROM admins")
     adminAccounts = cursor.fetchall()
     
-    addDefaultUser = True
-    for userName in adminAccounts:
-        if userName[0] == "default":
-            addDefaultUser = False
-        else:
-            pass
-            
-    if addDefaultUser:
+    addDefaultAdminUser = True
+    for user in adminAccounts:
+        if user[0] == "default":
+            addDefaultAdminUser = False
+    
+    
+    if addDefaultAdminUser:
         cursor.execute("INSERT INTO admins VALUES (?,?)", ('default', 'password'))
     
     connection.commit()
@@ -143,6 +141,9 @@ def createAdminObject():
         userNameCheck = True
         userName = input("Select a username for your admin account: ")
         
+        if userName == "STOP":
+            userNameCheck = False
+        
         connection = createConnection()
         cursor = connection.cursor()
         cursor.execute("SELECT userName FROM admins")
@@ -152,8 +153,6 @@ def createAdminObject():
         for userDBName in adminAccounts:
             if userDBName[0] == userName:
                 userNameCheck = False
-            else:
-                pass
 
         if userNameCheck:
             userPassword = input("Select a password for your admin account: ")
@@ -165,7 +164,7 @@ def createAdminObject():
             creatingAdmin = False
             return admin
         else:
-            print("Username already taken. Please select another.")
+            print("Username already taken or reserved. Please select another.")
                 
 def saveAdminData(admin):
     connection = createConnection()
@@ -269,6 +268,14 @@ def deleteStudentRecord(rmStudent):
             student = buildStudentObject(id[0])
             student.id = student.id - 1
             saveStudentData(student, True)
+    connection.close()
+        
+def deleteAdminRecord(rmAdmin):
+    connection = createConnection()
+    cursor = connection.cursor()
+    cursor.execute("DELETE from admins WHERE userName = ?", (rmAdmin.userName,))
+    connection.commit()
+    connection.close()
 
 # menu procedures
 
@@ -572,40 +579,87 @@ def createAdmin():
             pass
 
 def manageAdminAccounts():
-    managingAccounts = True
+    connection = createConnection()
+    cursor = connection.cursor()
     usingMenu = True
-    try:
-        while managingAccounts:
-            while usingMenu:
-                print("Choose an option:\n"
-                      "1. Create admin accounts.\n"
-                      "2. Delete admin accounts.\n"
-                      "3. Exit")
-                usrInput = int(input("Enter here: "))
+    
+    while usingMenu:
+        print("Choose an option:\n"
+              "1. Create admin accounts.\n"
+              "2. View all admin accounts.\n"
+              "3. Delete admin accounts.\n"
+              "4. Exit")
+        usrInput = input("Enter here: ")
+        
+        if usrInput == "1":
+            createAdmin()
+            
+        elif usrInput == "2":
+            accountNumber = 0
+            cursor.execute("SELECT userName FROM admins")
+            adminAccounts = cursor.fetchall()
+            
+            print ("---- Admin Accounts ----")
+            
+            for account in adminAccounts:
+                accountNumber += 1
+                print(f"{accountNumber}. {account[0]}")
                 
-                if usrInput == 1:
-                    createAdmin()
+            print ("------------------------")
+
+            
+                
+        elif usrInput == "3":
+            selectingAccount = True
+            
+            while selectingAccount:
+                rmAdminUsrName = input("Enter username of account for removal, enter 'STOP' to cancel.\nEnter here: ")
+
+                if rmAdminUsrName == "STOP":
+                    selectingAccount = False
+                    print ("------------------------")
+                    
+                elif rmAdminUsrName == "default":
+                    selectingAccount = False
+                    print("Unable to delete default user.")
+                    print ("------------------------")
+                    
+                else:
+                    selectedAdminAccount = buildAdminObject(rmAdminUsrName)
+                    
+                    if selectedAdminAccount:
+                        selectingAccount = False
+                        deleteAdminRecord(selectedAdminAccount)
+                        print("Account deleted!")
+                        print ("------------------------")
+                        
+                    else:
+                        print("Invalid username, try again.")
+    
+
+            
+            
+        elif usrInput == "4":
+            choosing = True
+            
+            while choosing:
+                print("Are you sure you want to exit?")
+                usrInput = input("Enter here (Y/N): ")
+                
+                if usrInput.upper() == "Y":
                     usingMenu = False
-                elif usrInput == 2:
-                    pass
-                elif usrInput == 3:
-                    choosing = True
-                    while choosing:
-                        print("Are you sure you want to exit?")
-                        usrInput = input("Enter here (Y/N): ")
-                        if usrInput.upper() == "Y":
-                            usingMenu = False
-                            managingAccounts = False
-                        elif usrInput.upper() == "N":
-                            choosing = False
-                        else:
-                            print("Invalid option!")
+                    choosing = False
+                    
+                elif usrInput.upper() == "N":
+                    choosing = False
+                    
                 else:
                     print("Invalid option!")
-             
+        else:
+            print("Invalid option!")
+    
+    connection.close()
             
-    except ValueError:
-        print("Invalid option!")
 
 # main function
 
@@ -617,37 +671,31 @@ def main():
         print("Login successful!")
         print("Welcome to the student database!")
         while mainRunning:
-            try:
-                print("--------------------\n"
-                    "Please select an option:\n"
-                    "1. Create new student.\n"
-                    "2. Access and edit student data.\n"
-                    "3. Reset student data.\n"
-                    "4. Reset admin data.\n"
-                    "5. Create admin account.\n"
-                    "6. Manage admin accounts.\n"
-                    "7. Exit.\n"
-                    "--------------------")
-                usrInput = int(input("Choose your option: "))
-                if usrInput == 1:
-                    createStudent()
-                elif usrInput == 2:
-                    accessStudentData()
-                elif usrInput == 3:
-                    resetStudentData()
-                elif usrInput == 4:
-                    resetAdminData()
-                elif usrInput == 5:
-                    createAdmin()
-                elif usrInput == 6:
-                    manageAdminAccounts()
-                elif usrInput == 7:
-                    exitProgram()
-                else:
-                    print("Invalid option!")
+            print("--------------------\n"
+                "Please select an option:\n"
+                "1. Create new student.\n"
+                "2. Access and edit student data.\n"
+                "3. Reset student data.\n"
+                "4. Reset admin data.\n"
+                "5. Manage admin accounts.\n"
+                "6. Exit.\n"
+                "--------------------")
+            usrInput = input("Choose your option: ")
+            if usrInput == "1":
+                createStudent()
+            elif usrInput == "2":
+                accessStudentData()
+            elif usrInput == "3":
+                resetStudentData()
+            elif usrInput == "4":
+                resetAdminData()
+            elif usrInput == "5":
+                manageAdminAccounts()
+            elif usrInput == "6":
+                exitProgram()
+            else:
+                print("Invalid option!")
                     
-            except ValueError:
-                print("Invalid option")
             
 if __name__ == '__main__':
     main()
