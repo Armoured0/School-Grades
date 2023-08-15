@@ -613,9 +613,7 @@ def manageAdminAccounts():
                 print(f"{accountNumber}. {account[0]}")
                 
             print ("------------------------")
-
-            
-                
+          
         elif usrInput == "3":
             selectingAccount = True
             
@@ -642,10 +640,7 @@ def manageAdminAccounts():
                         
                     else:
                         print("Invalid username, try again.")
-    
 
-            
-            
         elif usrInput == "4":
             choosing = True
             
