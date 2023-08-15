@@ -1,5 +1,5 @@
 # School-Grades
-Simple project for school.
+school grades database project made in Python
 
 Default Username: default
 
