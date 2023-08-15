@@ -12,14 +12,6 @@ class Student:
         self.computerScience = computerScience
         self.latin = latin
     
-    @classmethod
-    def construct(self, studentDataBase):
-        return self(studentDataBase[0], studentDataBase[1],
-                    studentDataBase[2], studentDataBase[3],
-                    studentDataBase[4], studentDataBase[5],
-                    studentDataBase[6], studentDataBase[7],
-                    studentDataBase[8], studentDataBase[9])
-
     def fullName(self):
         return f"{self.firstName} {self.lastName}"
     
@@ -44,11 +36,6 @@ class Admin:
     def __init__(self, userName, password):
         self.userName = userName
         self.password = password
-    
-    @classmethod
-    def construct(self, studentDataBase):
-        return self(studentDataBase[0], 
-                    studentDataBase[1])
     
     def passwordCheck(self, usrPassword):
         if usrPassword == self.password:

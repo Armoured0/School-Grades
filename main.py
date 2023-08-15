@@ -53,39 +53,6 @@ def establishTable():
     
     connection.commit()
     connection.close()
-    
-def createStudentObject():
-    creatingStudentObject = True
-    while creatingStudentObject:
-        try:
-            firstName = input("What is the student's first name? ")
-            lastName = input("What is the student's last name? ")
-            studentAge = int(input("How old is the student? "))
-        except ValueError:
-            print("Invalid option!")
-        else:
-            creatingStudentObject = False
-
-    connection = createConnection()
-    cursor = connection.cursor()
-    
-    cursor.execute("SELECT id FROM students ORDER BY id")
-    allStudentIds = cursor.fetchall()
-    
-    connection.close()
-    
-    if allStudentIds:
-        studentId = allStudentIds[-1][0]+1
-    else:
-        studentId = 0
-        
-    student = Student(studentId, firstName, lastName, studentAge)
-
-    print(f"This student is called {student.fullName()}.\n"
-          f"They are {student.age} years old.")
-    
-    
-    return student
 
 def saveStudentData(student, idChange=False):
     connection = createConnection()
@@ -129,42 +96,14 @@ def buildStudentObject(id):
     connection.close()
     
     if studentDbData:
-        return Student.construct(studentDbData[0])
+        studentInfo = studentDbData[0]
+        return Student(studentInfo[0], studentInfo[1], studentInfo[2], 
+                       studentInfo[3], studentInfo[4], studentInfo[5], 
+                       studentInfo[6], studentInfo[7], studentInfo[8], 
+                       studentInfo[9])
     else:
         print("Invalid student ID!")
         return False
-       
-def createAdminObject():
-    creatingAdmin = True
-    
-    while creatingAdmin:
-        userNameCheck = True
-        userName = input("Select a username for your admin account: ")
-        
-        if userName == "STOP":
-            userNameCheck = False
-        
-        connection = createConnection()
-        cursor = connection.cursor()
-        cursor.execute("SELECT userName FROM admins")
-        adminAccounts = cursor.fetchall()
-        connection.close()
-        
-        for userDBName in adminAccounts:
-            if userDBName[0] == userName:
-                userNameCheck = False
-
-        if userNameCheck:
-            userPassword = input("Select a password for your admin account: ")
-
-            admin = Admin(userName, userPassword)
-
-            print(f"Your username is: {admin.userName}.\n"
-                f"Your password is: {admin.password}")
-            creatingAdmin = False
-            return admin
-        else:
-            print("Username already taken or reserved. Please select another.")
                 
 def saveAdminData(admin):
     connection = createConnection()
@@ -182,7 +121,8 @@ def buildAdminObject(userName):
     connection.close()
     
     if adminDbData:
-        return Admin.construct(adminDbData[0])
+        adminInfo = adminDbData[0]
+        return Admin(adminInfo[0], adminInfo[1])
     else:
         print("Username not found!")
         return False
@@ -279,18 +219,55 @@ def deleteAdminRecord(rmAdmin):
 
 # menu procedures
 
-def createStudent():
+def createStudentAccount():
+    
     choosingSave = True
-    student = createStudentObject()
+    creatingStudentObject = True
+    
+    while creatingStudentObject:
+        
+        try:
+            firstName = input("What is the student's first name? ")
+            lastName = input("What is the student's last name? ")
+            studentAge = int(input("How old is the student? "))
+        
+        except ValueError:
+            print("Invalid input!")
+        
+        else:
+            creatingStudentObject = False
+
+    connection = createConnection()
+    cursor = connection.cursor()
+    
+    cursor.execute("SELECT id FROM students ORDER BY id")
+    allStudentIds = cursor.fetchall()
+    
+    connection.close()
+    
+    if allStudentIds:
+        studentId = allStudentIds[-1][0]+1
+    else:
+        studentId = 0
+        
+    student = Student(studentId, firstName, lastName, studentAge)
+
+    print(f"This student is called {student.fullName()}.\n"
+          f"They are {student.age} years old.")
+    
     while choosingSave:
+        
         usrInput = input("Would you like to save this student? Y or N: ")
+        
         if usrInput.upper() == "Y":
             choosingSave = False
             saveStudentData(student)
             pass
+        
         elif usrInput.upper() == "N":
             choosingSave = False
             pass
+        
         else:
             print("Invalid option!")
             pass
@@ -566,7 +543,37 @@ def exitProgram():
 
 def createAdmin():
     choosingSave = True
-    admin = createAdminObject()
+    creatingAdmin = True
+    
+    while creatingAdmin:
+        userNameCheck = True
+        userName = input("Select a username for your admin account: ")
+        
+        if userName == "STOP":
+            userNameCheck = False
+        
+        connection = createConnection()
+        cursor = connection.cursor()
+        cursor.execute("SELECT userName FROM admins")
+        adminAccounts = cursor.fetchall()
+        connection.close()
+        
+        for userDBName in adminAccounts:
+            if userDBName[0] == userName:
+                userNameCheck = False
+
+        if userNameCheck:
+            userPassword = input("Select a password for your admin account: ")
+
+            admin = Admin(userName, userPassword)
+
+            print(f"Your username is: {admin.userName}.\n"
+                f"Your password is: {admin.password}")
+            creatingAdmin = False
+        else:
+            print("Username already taken or reserved. Please select another.")
+                
+
     while choosingSave:
         usrInput = input("Would you like to save this account? Y or N: ")
         if usrInput.upper() == "Y":
@@ -682,7 +689,7 @@ def main():
                 "--------------------")
             usrInput = input("Choose your option: ")
             if usrInput == "1":
-                createStudent()
+                createStudentAccount()
             elif usrInput == "2":
                 accessStudentData()
             elif usrInput == "3":
