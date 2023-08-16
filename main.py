@@ -1,7 +1,8 @@
 import sqlite3
 from sqlite3 import Cursor, Error
 
-from classfile import Student, Admin
+from user.admin import Admin
+from user.student import Student
 
 # functions
 
@@ -159,17 +160,6 @@ def savedStudents():
     else:
         print("No avaliable students")
         return False
-
-def studentCurrentGrades(student):
-    return ("--------------------\n"
-              "Student current grades:\n"
-              f"Maths: {student.letterGrade(student.maths)}\n"
-              f"English: {student.letterGrade(student.english)}\n"
-              f"Physics: {student.letterGrade(student.physics)}\n"
-              f"Business Studies: {student.letterGrade(student.business)}\n"
-              f"Computer Science: {student.letterGrade(student.computerScience)}\n"
-              f"Latin: {student.letterGrade(student.latin)}\n"
-              "--------------------")
 
 def changeStudentGrade():
     enteringGrade = True
@@ -539,7 +529,7 @@ def exitProgram():
         elif usrInput.upper() == "N":
             choosing = False
         else:
-            print("Invalid option!")      
+            print("Invalid option!")
 
 def createAdmin():
     choosingSave = True
@@ -662,7 +652,6 @@ def manageAdminAccounts():
     
     connection.close()
             
-
 # main function
 
 def main():
