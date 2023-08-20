@@ -1,6 +1,6 @@
 class Student:
     def __init__(self, id, firstName, lastName, age, maths=None, english=None,
-                 physics=None, business=None, computerScience=None, latin=None):
+                 physics=None, business=None, computerScience=None, latin=None) -> None:
         self.id = id
         self.firstName = firstName
         self.lastName = lastName

@@ -1,62 +1,15 @@
 import sqlite3
 from sqlite3 import Cursor, Error
 
+import program.database as database
+import program.menu as menu
 from user.admin import Admin
 from user.student import Student
 
 # functions
 
-def createConnection(dbFile="SchoolDatabase.sqlite"):
-    connection = None
-    try:
-        return sqlite3.connect(dbFile)
-    except Error as error:
-        print(error)
-        exit()
-    finally:
-        if connection:
-            connection.close()
-            
-def establishTable():
-    connection = createConnection()
-    cursor = connection.cursor()
-    cursor.execute("""
-                   CREATE TABLE IF NOT EXISTS students (
-                       id INTEGER,
-                       firstName TEXT,
-                       lastName TEXT,
-                       age INTEGER,
-                       mathsGrade INTEGER,
-                       englishGrade INTEGER,
-                       physicsGrade INTEGER,
-                       businessGrade INTEGER,
-                       computerScienceGrade INTEGER,
-                       latinGrade INTEGER
-                   )""")
-    
-    cursor.execute("""
-               CREATE TABLE IF NOT EXISTS admins (
-                   userName TEXT,
-                   password TEXT
-               )""")
-    
-    cursor.execute("SELECT userName FROM admins")
-    adminAccounts = cursor.fetchall()
-    
-    addDefaultAdminUser = True
-    for user in adminAccounts:
-        if user[0] == "default":
-            addDefaultAdminUser = False
-    
-    
-    if addDefaultAdminUser:
-        cursor.execute("INSERT INTO admins VALUES (?,?)", ('default', 'password'))
-    
-    connection.commit()
-    connection.close()
-
 def saveStudentData(student, idChange=False):
-    connection = createConnection()
+    connection = database.createConnection()
     cursor = connection.cursor()
     
     cursor.execute("SELECT id FROM students ORDER BY id")
@@ -89,7 +42,7 @@ def saveStudentData(student, idChange=False):
     connection.close()
 
 def buildStudentObject(id):
-    connection = createConnection()
+    connection = database.createConnection()
     cursor = connection.cursor()
     
     cursor.execute("SELECT * FROM students WHERE id = ?", (id,))
@@ -105,46 +58,9 @@ def buildStudentObject(id):
     else:
         print("Invalid student ID!")
         return False
-                
-def saveAdminData(admin):
-    connection = createConnection()
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO admins VALUES (?,?)", (admin.userName, admin.password))
-    connection.commit()
-    connection.close()
-
-def buildAdminObject(userName):
-    connection = createConnection()
-    cursor = connection.cursor()
     
-    cursor.execute("SELECT * FROM admins WHERE userName = ?", (userName,))
-    adminDbData = cursor.fetchall()
-    connection.close()
-    
-    if adminDbData:
-        adminInfo = adminDbData[0]
-        return Admin(adminInfo[0], adminInfo[1])
-    else:
-        print("Username not found!")
-        return False
-    
-def adminCheck():
-    loggingIn = True
-    while loggingIn:
-        usrInput = input("Enter admin username: ")
-        admin = buildAdminObject(usrInput)
-        if admin:
-            usrInput = input("Enter admin password: ")
-            if usrInput == admin.password:
-                return True
-            else:
-                print("Credentials incorrect!")
-                return False
-        else:
-            pass
-
 def savedStudents():
-    connection = createConnection()
+    connection = database.createConnection()
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM students ORDER BY id")
     students = cursor.fetchall()
@@ -171,23 +87,8 @@ def changeStudentGrade():
         else:
             print("Invalid percentage!")
 
-def databaseSearch(query):
-    results = []
-    connection = createConnection()
-    cursor = connection.cursor()
-    
-    cursor.execute("SELECT id, firstName, lastName FROM students")
-    students = cursor.fetchall()
-    
-    for student in students:
-        if query.lower() in f"{student[1].lower()} {student[2].lower()}":
-            results.append(student)
-                     
-    connection.close()
-    return results
-
 def deleteStudentRecord(rmStudent):
-    connection = createConnection()
+    connection = database.createConnection()
     cursor = connection.cursor()
     cursor.execute("DELETE from students WHERE id = ?", (rmStudent.id,))
     connection.commit()
@@ -199,18 +100,10 @@ def deleteStudentRecord(rmStudent):
             student.id = student.id - 1
             saveStudentData(student, True)
     connection.close()
-        
-def deleteAdminRecord(rmAdmin):
-    connection = createConnection()
-    cursor = connection.cursor()
-    cursor.execute("DELETE from admins WHERE userName = ?", (rmAdmin.userName,))
-    connection.commit()
-    connection.close()
 
 # menu procedures
 
 def createStudentAccount():
-    
     choosingSave = True
     creatingStudentObject = True
     
@@ -227,7 +120,7 @@ def createStudentAccount():
         else:
             creatingStudentObject = False
 
-    connection = createConnection()
+    connection = database.createConnection()
     cursor = connection.cursor()
     
     cursor.execute("SELECT id FROM students ORDER BY id")
@@ -327,7 +220,7 @@ def accessStudentData():
 
                 elif usrInput == 2:
                     studentName = input("Enter name of student: ")
-                    matches = databaseSearch(studentName)
+                    matches = database.studentSearch(studentName)
                     if matches:
                         print("--------------------\nMatching students accounts:")
                         for student in matches:
@@ -483,11 +376,11 @@ def resetStudentData():
         usrInput = input("Enter here (Y/N): ")
         if usrInput.upper() == "Y" or usrInput.upper() == "N":
             if usrInput.upper() == "Y":
-                connection = createConnection()
+                connection = database.createConnection()
                 cursor = connection.cursor()
                 cursor.execute("DROP TABLE students")
                 connection.close()
-                establishTable()
+                database.establishTable()
                 print("All student data has been reset!")
                 resettingData = False
             if usrInput.upper() == "N":
@@ -496,168 +389,13 @@ def resetStudentData():
         else:
             print("Invalid option!")
             pass
-        
-def resetAdminData():
-    resettingData = True
-    while resettingData:
-        print("Are you sure you want to reset all admin data?")
-        usrInput = input("Enter here (Y/N): ")
-        if usrInput.upper() == "Y" or usrInput.upper() == "N":
-            if usrInput.upper() == "Y":
-                connection = createConnection()
-                cursor = connection.cursor()
-                cursor.execute("DROP TABLE admins")
-                connection.close()
-                establishTable()
-                print("All admin data has been reset!")
-                resettingData = False
-            if usrInput.upper() == "N":
-                print("Exiting!")
-                resettingData = False
-        else:
-            print("Invalid option!")
-            pass
-
-def exitProgram():
-    choosing = True
-    while choosing:
-        print("Are you sure you want to exit?")
-        usrInput = input("Enter here (Y/N): ")
-        if usrInput.upper() == "Y":
-            print("Exiting...")
-            exit()
-        elif usrInput.upper() == "N":
-            choosing = False
-        else:
-            print("Invalid option!")
-
-def createAdmin():
-    choosingSave = True
-    creatingAdmin = True
-    
-    while creatingAdmin:
-        userNameCheck = True
-        userName = input("Select a username for your admin account: ")
-        
-        if userName == "STOP":
-            userNameCheck = False
-        
-        connection = createConnection()
-        cursor = connection.cursor()
-        cursor.execute("SELECT userName FROM admins")
-        adminAccounts = cursor.fetchall()
-        connection.close()
-        
-        for userDBName in adminAccounts:
-            if userDBName[0] == userName:
-                userNameCheck = False
-
-        if userNameCheck:
-            userPassword = input("Select a password for your admin account: ")
-
-            admin = Admin(userName, userPassword)
-
-            print(f"Your username is: {admin.userName}.\n"
-                f"Your password is: {admin.password}")
-            creatingAdmin = False
-        else:
-            print("Username already taken or reserved. Please select another.")
-                
-
-    while choosingSave:
-        usrInput = input("Would you like to save this account? Y or N: ")
-        if usrInput.upper() == "Y":
-            choosingSave = False
-            saveAdminData(admin)
-        elif usrInput.upper() == "N":
-            choosingSave = False
-        else:
-            print("Invalid option!")
-            pass
-
-def manageAdminAccounts():
-    connection = createConnection()
-    cursor = connection.cursor()
-    usingMenu = True
-    
-    while usingMenu:
-        print("Choose an option:\n"
-              "1. Create admin accounts.\n"
-              "2. View all admin accounts.\n"
-              "3. Delete admin accounts.\n"
-              "4. Exit")
-        usrInput = input("Enter here: ")
-        
-        if usrInput == "1":
-            createAdmin()
-            
-        elif usrInput == "2":
-            accountNumber = 0
-            cursor.execute("SELECT userName FROM admins")
-            adminAccounts = cursor.fetchall()
-            
-            print ("---- Admin Accounts ----")
-            
-            for account in adminAccounts:
-                accountNumber += 1
-                print(f"{accountNumber}. {account[0]}")
-                
-            print ("------------------------")
-          
-        elif usrInput == "3":
-            selectingAccount = True
-            
-            while selectingAccount:
-                rmAdminUsrName = input("Enter username of account for removal, enter 'STOP' to cancel.\nEnter here: ")
-
-                if rmAdminUsrName == "STOP":
-                    selectingAccount = False
-                    print ("------------------------")
-                    
-                elif rmAdminUsrName == "default":
-                    selectingAccount = False
-                    print("Unable to delete default user.")
-                    print ("------------------------")
-                    
-                else:
-                    selectedAdminAccount = buildAdminObject(rmAdminUsrName)
-                    
-                    if selectedAdminAccount:
-                        selectingAccount = False
-                        deleteAdminRecord(selectedAdminAccount)
-                        print("Account deleted!")
-                        print ("------------------------")
-                        
-                    else:
-                        print("Invalid username, try again.")
-
-        elif usrInput == "4":
-            choosing = True
-            
-            while choosing:
-                print("Are you sure you want to exit?")
-                usrInput = input("Enter here (Y/N): ")
-                
-                if usrInput.upper() == "Y":
-                    usingMenu = False
-                    choosing = False
-                    
-                elif usrInput.upper() == "N":
-                    choosing = False
-                    
-                else:
-                    print("Invalid option!")
-        else:
-            print("Invalid option!")
-    
-    connection.close()
             
 # main function
 
 def main():
-    establishTable()
+    database.establishTable()
     print("You must login to access this application.")
-    if adminCheck() == True:
+    if Admin.adminCheck() == True:
         mainRunning = True
         print("Login successful!")
         print("Welcome to the student database!")
@@ -669,7 +407,7 @@ def main():
                 "3. Reset student data.\n"
                 "4. Reset admin data.\n"
                 "5. Manage admin accounts.\n"
-                "6. Exit.\n"
+                "6. Exit program.\n"
                 "--------------------")
             usrInput = input("Choose your option: ")
             if usrInput == "1":
@@ -679,11 +417,11 @@ def main():
             elif usrInput == "3":
                 resetStudentData()
             elif usrInput == "4":
-                resetAdminData()
+                Admin.resetAdminData()
             elif usrInput == "5":
-                manageAdminAccounts()
+                Admin.manageAdminAccounts()
             elif usrInput == "6":
-                exitProgram()
+                menu.exitProgram()
             else:
                 print("Invalid option!")
                     
