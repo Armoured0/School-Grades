@@ -40,24 +40,6 @@ def saveStudentData(student, idChange=False):
 
     connection.commit()
     connection.close()
-
-def buildStudentObject(id):
-    connection = database.createConnection()
-    cursor = connection.cursor()
-    
-    cursor.execute("SELECT * FROM students WHERE id = ?", (id,))
-    studentDbData = cursor.fetchall()
-    connection.close()
-    
-    if studentDbData:
-        studentInfo = studentDbData[0]
-        return Student(studentInfo[0], studentInfo[1], studentInfo[2], 
-                       studentInfo[3], studentInfo[4], studentInfo[5], 
-                       studentInfo[6], studentInfo[7], studentInfo[8], 
-                       studentInfo[9])
-    else:
-        print("Invalid student ID!")
-        return False
     
 def savedStudents():
     connection = database.createConnection()
@@ -70,7 +52,7 @@ def savedStudents():
         print("--------------------")
         print("Avaliable students:")
         for student in students:
-            student = buildStudentObject(student[0])
+            student = Student.createStudentInstance(student[0])
             print(f"ID: {student.id}. Full name: {student.fullName()}")
         return True
     else:
@@ -96,7 +78,7 @@ def deleteStudentRecord(rmStudent):
     studentIds = cursor.fetchall()
     for id in studentIds:
         if id[0] > rmStudent.id:
-            student = buildStudentObject(id[0])
+            student = Student.createStudentInstance(id[0])
             student.id = student.id - 1
             saveStudentData(student, True)
     connection.close()
@@ -224,7 +206,7 @@ def accessStudentData():
                     if matches:
                         print("--------------------\nMatching students accounts:")
                         for student in matches:
-                            student = buildStudentObject(student[0])
+                            student = Student.createStudentInstance(student[0])
                             print(f"ID: {student.id}. Full name: {student.fullName()}.")
 
                         searchingForStudent = False
@@ -245,7 +227,7 @@ def accessStudentData():
         if not exiting:    
             print("--------------------\nEnter the ID of the student profile you would like to access.")
             id = input("Enter here: ")
-            student = buildStudentObject(id)
+            student = Student.createStudentInstance(id)
             if student:
                 usingProfile = True
                 while usingProfile:
