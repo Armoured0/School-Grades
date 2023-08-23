@@ -1,6 +1,6 @@
 import program.database as database
 
-class Admin:   
+class Admin:
     def __init__(self, userName, password) -> None:
         self.userName = userName
         self.password = password
@@ -134,7 +134,7 @@ class Admin:
                     accountNumber += 1
                     print(f"{accountNumber}. {account[0]}")
                     
-                print ("------------------------")
+                print ("----------------")
             
             elif usrInput == "3":
                 selectingAccount = True
@@ -144,12 +144,12 @@ class Admin:
 
                     if rmAdminUsrName == "STOP":
                         selectingAccount = False
-                        print ("------------------------")
+                        print ("----------------")
                         
                     elif rmAdminUsrName == "default":
                         selectingAccount = False
                         print("Unable to delete default user.")
-                        print ("------------------------")
+                        print ("----------------")
                         
                     else:
                         selectedAdminAccount = Admin.createAdminInstance(rmAdminUsrName)
@@ -159,7 +159,7 @@ class Admin:
                             selectedAdminAccount.deleteAdminRecord()
                             
                             print("Account deleted!")
-                            print ("------------------------")
+                            print ("----------------")
                             
                         else:
                             print("Invalid username, try again.")
