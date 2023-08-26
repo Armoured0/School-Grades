@@ -16,8 +16,8 @@ def main():
                 "1. Create new student.\n"
                 "2. Access and edit student data.\n"
                 "3. Reset student data.\n"
-                "4. Reset admin data.\n"
-                "5. Manage admin accounts.\n"
+                "4. Manage admin accounts.\n"
+                "5. Reset admin data.\n"
                 "6. Exit program.\n"
                 "----------------")
             usrInput = input("Choose your option: ")
@@ -28,9 +28,9 @@ def main():
             elif usrInput == "3":
                 Student.resetStudentData()
             elif usrInput == "4":
-                Admin.resetAdminData()
-            elif usrInput == "5":
                 Admin.manageAdminAccounts()
+            elif usrInput == "5":
+                Admin.resetAdminData()
             elif usrInput == "6":
                 menu.exitProgram()
             else:

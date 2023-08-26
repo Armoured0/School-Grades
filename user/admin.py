@@ -9,54 +9,9 @@ class Admin:
         self.userName = userName
         self.password = password
     
-    def passwordCheck(self):
-        usrPassword = input("Enter admin password: ")
-        
-        if usrPassword == self.password:
-            return True
-        else:
-            print("Credentials incorrect!")
-            return False
-        
-    def adminCheck():
-        loggingIn = True
-        
-        while loggingIn:
-            
-            usrInput = input("Enter admin username: ")
-            admin = Admin.createAdminInstance(usrInput)
-            
-            if admin:
-                checkResult = admin.passwordCheck()
-                return checkResult
-        
-    def createAdminInstance(userName):
-        connection = database.createConnection()
-        cursor = connection.cursor()
-        
-        cursor.execute("SELECT * FROM admins WHERE userName = ?", (userName,))
-        adminDbData = cursor.fetchall()
-        connection.close()
-        
-        if adminDbData:
-            adminInfo = adminDbData[0]
-            return Admin(adminInfo[0], adminInfo[1])
-        else:
-            print("Account not found!")
-            return False
-        
-    def saveAdminData(self):
-        connection = database.createConnection()
-        cursor = connection.cursor()
-        
-        cursor.execute("INSERT INTO admins VALUES (?,?)", (self.userName, self.password))
-        print(f"Data saved on admin account '{self.userName}'")
-        
-        connection.commit()
-        connection.close()
-        
+    #* admin creation subroutines
+    
     def createNewAdmin():
-        choosingSave = True
         creatingAdmin = True
         
         while creatingAdmin:
@@ -91,28 +46,40 @@ class Admin:
             else:
                 print("Username already taken or reserved. Please select another.")
                     
-
-        while choosingSave:
-            usrInput = input("Would you like to save this account? Y or N: ")
-            
-            if (usrInput.upper() == "Y"):
-                choosingSave = False
-                self.saveAdminData()
-            
-            elif (usrInput.upper() == "N"):
-                choosingSave = False
-            
-            else:
-                print("Invalid option!")
-                pass
-      
-    def deleteAdminRecord(self):
+        if (utility.yesOrNo("Would you like to save this account? Y or N: ") == True):
+            self.saveAdminData()
+    
+    
+    def createAdminInstance(userName):
         connection = database.createConnection()
         cursor = connection.cursor()
-        cursor.execute("DELETE from admins WHERE userName = ?", (self.userName,))
+        
+        cursor.execute("SELECT * FROM admins WHERE userName = ?", (userName,))
+        adminDbData = cursor.fetchall()
+        connection.close()
+        
+        if adminDbData:
+            adminInfo = adminDbData[0]
+            return Admin(adminInfo[0], adminInfo[1])
+        else:
+            print("Account not found!")
+            return False
+        
+        
+    def saveAdminData(self):
+        connection = database.createConnection()
+        cursor = connection.cursor()
+        
+        cursor.execute("INSERT INTO admins VALUES (?,?)", (self.userName, self.password))
+        print(f"Data saved on admin account '{self.userName}'")
+        
         connection.commit()
         connection.close()
-       
+            
+    
+    #* admin data access/manipulation
+    
+    
     def manageAdminAccounts():
         connection = database.createConnection()
         cursor = connection.cursor()
@@ -186,7 +153,16 @@ class Admin:
                 print("Invalid option!")
         
         connection.close()
-      
+    
+    
+    def deleteAdminRecord(self):
+        connection = database.createConnection()
+        cursor = connection.cursor()
+        cursor.execute("DELETE from admins WHERE userName = ?", (self.userName,))
+        connection.commit()
+        connection.close()
+        
+        
     def resetAdminData():
         userResponse = utility.yesOrNo("Are you sure you want to reset all admin data?")
         
@@ -201,3 +177,29 @@ class Admin:
         
         elif userResponse == False:
             print("Exiting!")
+
+    
+    #* admin utility
+    
+    
+    def passwordCheck(self):
+        usrPassword = input("Enter admin password: ")
+        
+        if usrPassword == self.password:
+            return True
+        else:
+            print("Credentials incorrect!")
+            return False
+        
+        
+    def adminCheck():
+        loggingIn = True
+
+        while loggingIn:
+            
+            usrInput = input("Enter admin username: ")
+            admin = Admin.createAdminInstance(usrInput)
+            
+            if admin:
+                checkResult = admin.passwordCheck()
+                return checkResult

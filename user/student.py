@@ -27,7 +27,7 @@ class Student:
         while gettingStudentInfo:
             try:
                 firstName = input("Enter student's first name: ")
-                lastName = input("Enter student's first name: ")
+                lastName = input("Enter student's last name: ")
                 studentAge = int(input("Enter student age: "))
             except ValueError:
                 print("Invalid input!")
@@ -53,28 +53,6 @@ class Student:
         
         if (utility.yesOrNo("Would you like to save this student?") == True):
             self.saveStudentData()
-            
-            
-    def createStudentInstance(id):
-        connection = database.createConnection()
-        cursor = connection.cursor()
-            
-        cursor.execute("SELECT * FROM students WHERE id = ?", (id,))
-        studentDbData = cursor.fetchall()
-        connection.close()
-            
-        if (studentDbData):
-            studentInfo = studentDbData[0]
-            return Student(studentInfo[0], studentInfo[1], studentInfo[2], 
-                        studentInfo[3], studentInfo[4], studentInfo[5], 
-                        studentInfo[6], studentInfo[7], studentInfo[8], 
-                        studentInfo[9])
-        else:
-            print("Invalid student ID!")
-            return None
-    
-    
-    #* student data manipulation
     
     
     def saveStudentData(self, idChange=False):
@@ -111,8 +89,30 @@ class Student:
             print("----------------")
             print(f"Data saved at student ID: {self.id}")
         connection.close()
-        
-                
+    
+            
+    def createStudentInstance(id):
+        connection = database.createConnection()
+        cursor = connection.cursor()
+            
+        cursor.execute("SELECT * FROM students WHERE id = ?", (id,))
+        studentDbData = cursor.fetchall()
+        connection.close()
+            
+        if (studentDbData):
+            studentInfo = studentDbData[0]
+            return Student(studentInfo[0], studentInfo[1], studentInfo[2], 
+                        studentInfo[3], studentInfo[4], studentInfo[5], 
+                        studentInfo[6], studentInfo[7], studentInfo[8], 
+                        studentInfo[9])
+        else:
+            print("Invalid student ID!")
+            return None
+    
+    
+    #* student access/data manipulation
+    
+                    
     def accessStudentData():
         searchingForStudent = True
         
@@ -198,12 +198,15 @@ class Student:
                     
             elif (usrInput == "4"):
                 usingProfile = False
+            
+            else:
+                print("Invalid option!")
 
 
     def editStudentData(self):
         editing = True
         while editing:
-            
+            selectionComplete = False
             print("----------------\n"
                   "What do you want to edit?\n"
                     "1. Name\n"
@@ -217,6 +220,7 @@ class Student:
                 self.firstName = input("Enter student's first name: ")
                 self.lastName = input("Enter student's last name: ")
                 self.saveStudentData()
+                selectionComplete = True
                 
             elif (usrInput == "2"):
                 try:
@@ -225,19 +229,21 @@ class Student:
                     self.saveStudentData()
                 except ValueError:
                     print("Invalid input!")
+                else:
+                    selectionComplete = True
 
             else:
                 print("Invalid option!")
-                print("----------------")
 
-                        
-            if utility.yesOrNo("Would you like to continue editing student credentials?") == False:
-                editing = False
+            if (selectionComplete ==  True):
+                if (utility.yesOrNo("Would you like to continue editing student credentials?") == False):
+                    editing = False
 
 
     def addStudentGrades(self):
         choosingGrade = True
         while choosingGrade:
+            selectionComplete = False
             print("----------------\n"
                 "Please select a subject to edit:\n"
                 "1. Maths\n"
@@ -255,37 +261,44 @@ class Student:
                 print("Enter your math grade as a percentage.")
                 self.maths = Student.inputStudentGrade()
                 self.saveStudentData()
+                selectionComplete = True
 
             elif (usrInput == "2"):
                 print("Enter your english grade as a percentage.")
                 self.english = Student.inputStudentGrade()
                 self.saveStudentData()
+                selectionComplete = True
                 
             elif (usrInput == "3"):
                 print("Enter your physics grade as a percentage.")
                 self.physics = Student.inputStudentGrade()
                 self.saveStudentData()
+                selectionComplete = True
                 
             elif (usrInput == "4"):
                 print("Enter your business grade as a percentage.")
                 self.business = Student.inputStudentGrade()
                 self.saveStudentData()
+                selectionComplete = True
                 
             elif (usrInput == "5"):
                 print("Enter your computer science grade as a percentage.")
                 self.computerScience = Student.inputStudentGrade()
                 self.saveStudentData()
+                selectionComplete = True
                 
             elif (usrInput == "6"):
                 print("Enter your latin grade as a percentage.")
                 self.latin = Student.inputStudentGrade()
                 self.saveStudentData()
+                selectionComplete = True
                         
             else:
                 print("Invalid option!")
         
-            if (utility.yesOrNo("Would you like to continue editing this student's grades?") == False):
-                choosingGrade = False
+            if (selectionComplete == True):
+                if (utility.yesOrNo("Would you like to continue editing this student's grades?") == False):
+                    choosingGrade = False
 
 
     def deleteStudentRecord(self):
