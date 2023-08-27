@@ -359,12 +359,15 @@ class Student:
     def inputStudentGrade():
         enteringGrade = True
         while enteringGrade:
-            usrInput = int(input("Enter grade (0-100): "))
-            if (usrInput >= 0 and usrInput <= 100):
-                enteringGrade = False
-                return usrInput
-            else:
-                print("Invalid percentage!")
+            try:
+                usrInput = int(input("Enter grade (0-100): "))
+                if (usrInput >= 0 and usrInput <= 100):
+                    enteringGrade = False
+                    return usrInput
+                else:
+                    print("Invalid percentage!")
+            except:
+                print("Invalid input!")
         
         
     def fullName(self):
